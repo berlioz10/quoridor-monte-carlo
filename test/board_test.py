@@ -2,7 +2,7 @@ import unittest
 
 from game.board import Board
 from game.player import Player
-from utils.consts import BOARD_PAWN_DIM, BOARD_WALL_DIM, DOWN, UP, HORIZONTAL, LEFT, RIGHT
+from utils.consts import BOARD_PAWN_DIM, BOARD_WALL_DIM, DOWN, UP, HORIZONTAL, LEFT, RIGHT, VERTICAL
 
 class BoardTest(unittest.TestCase):
     def validate_coordinates(board: Board, player1x: int, player1y: int, player2x: int, player2y: int) -> bool:
@@ -38,9 +38,88 @@ class BoardTest(unittest.TestCase):
         except:
             self.fail("The position of this wall should not have thrown errors!")
 
-        # horizontal walls should not be allowed near it, but vertical ones should
+        # it should not be possible to put another wall on the same coordinates
+        with self.assertRaises(Exception):
+            board.useWall(x, y, HORIZONTAL)
+        with self.assertRaises(Exception):
+            board.useWall(x, y, VERTICAL)
+        # horizontal walls should not be allowed near it ( from left-right perspective), but vertical ones should
+        # wall on the left:
+        # horizontal
+        ynear = y - 1
+        with self.assertRaises(Exception):
+            board.useWall(x, ynear, HORIZONTAL)
+        # vertical
+        try:
+            board.useWall(x, ynear, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
 
-    def test_wo_walls_position_board(self):
+        # wall on the right:
+        # horizontal
+        ynear = y + 1
+        with self.assertRaises(Exception):
+            board.useWall(x, ynear, HORIZONTAL)
+        # vertical
+        try:
+            board.useWall(x, ynear, VERTICAL)
+        except:
+            self.fail("This position of a wall should not have thrown errors!")
+
+        # need a new board, because we cannot delete walls from it
+        board = Board(Player(), Player())
+        # testing for vertical walls
+        x = BOARD_WALL_DIM // 2
+        y = BOARD_WALL_DIM // 2
+        try:
+            board.useWall(x, y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        # it should not be possible to put another wall on the same coordinates
+        with self.assertRaises(Exception):
+            board.useWall(x, y, HORIZONTAL)
+        with self.assertRaises(Exception):
+            board.useWall(x, y, VERTICAL)
+        # vertical walls should not be allowed near it ( from up-down perspective), but horizontal ones should
+        # down wall:
+        # vertical
+        xnear = x - 1
+        with self.assertRaises(Exception):
+            board.useWall(xnear, y, VERTICAL)
+        # horizontal
+        try:
+            board.useWall(xnear, y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        # up wall:
+        # vertical
+        xnear = x + 1
+        with self.assertRaises(Exception):
+            board.useWall(xnear, y, VERTICAL)
+        # horizontal
+        try:
+            board.useWall(xnear, y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        # validate walls out of boundaries
+        
+        with self.assertRaises(Exception):
+            board.useWall(BOARD_WALL_DIM, BOARD_WALL_DIM - 1, HORIZONTAL)
+        with self.assertRaises(Exception):
+            board.useWall(-1, BOARD_WALL_DIM - 1, HORIZONTAL)
+        with self.assertRaises(Exception):
+            board.useWall(BOARD_WALL_DIM - 1, BOARD_WALL_DIM, HORIZONTAL)
+        with self.assertRaises(Exception):
+            board.useWall(BOARD_WALL_DIM - 1, -1, HORIZONTAL)
+        
+        # validate for the "funny" guys
+        with self.assertRaises(Exception):
+            board.useWall(BOARD_WALL_DIM - 1, 0, "funny constant")
+
+    def test_moves_wo_walls_position_board(self):
         # start position:
         # human: 0 4
         # ai: 8 4
@@ -194,7 +273,7 @@ class BoardTest(unittest.TestCase):
         # UP should be false
         self.assertFalse(board.validateSimpleMove(UP, [player1.x, player1.y], player2))
 
-    def test_with_walls_position_board(self):
+    def test_moves_with_walls_position_board(self):
         # start position:
         # human: 0 4
         # ai: 8 4
@@ -204,5 +283,20 @@ class BoardTest(unittest.TestCase):
         # validate coordinates
         self.assertTrue(BoardTest.validate_coordinates(board, 0, 4, 8, 4))
 
-        player2.x = BOARD_PAWN_DIM // 2
-        player2.y = BOARD_PAWN_DIM // 2
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+
+        # TODO
+        # valdate only with walls. you do not need the position of the second player
+
+    def test_moves_validation(self):
+        # TODO
+        None
+
+    def test_get_actions(self):
+        # Reminder:
+        # exclude tests that may give special moves
+
+        # TODO
+        # tests that may give special moves
+        None

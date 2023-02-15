@@ -57,7 +57,12 @@ class Board:
 
         return actions_list
 
-    
+    # tries to put a wall in the board
+    # validates if it is out of boundaries, consts are incorrect and etc.
+    # if the validation process is ok, then places a wall
+    # and sets the allowance of other walls near it
+    # x, y - numbers, coordinates of the wall
+    # position - VERTICAL or HORIZONTAL ( consts), how the wall should be put
     def useWall(self, x: int, y: int, position: str):
         if x < 0 or x > BOARD_WALL_DIM - 1 or y < 0 or y > BOARD_WALL_DIM - 1:
             raise Exception("Coordinates of the wall are not between 0 and 7") 
@@ -87,7 +92,20 @@ class Board:
             if x < BOARD_WALL_DIM - 1:
                 self.wallsAllowed[x + 1][VERTICAL][y] = False
         
+    # validates if a move from coordinates ( which are given as a list)
+    # can actually make that move
+    # this is a simple version, as in it does not interfere with special actions with another player
+    # ( like jumping him etc.)
+    # mov - UP DOWN LEFT RIGHT ( consts), and nothing more
+    # pos - a list of length 2, with 2 numbers that should be between 0 and BOARD_PAWN_DIM ( an integer const)
+    # otherPlayer - the other player ( we need him because he should not make moves that will make 
+    # the two pawns have the same coordinates)
+
+    # # TODO: the validation of this function is not as strict as the "useWall" method:
+    # it does not validate if pos has enough values, or if the move is valid
     def validateSimpleMove(self, move: str, pos: list, otherPlayer: Player) -> bool:
+        if len(pos) != 2:
+            raise Exception("Pos list must have the length of 2 ( coordinates x and y)")
         x = pos[0]
         y = pos[1]
         if move == UP:

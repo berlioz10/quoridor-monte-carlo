@@ -87,57 +87,62 @@ class Board:
             if x < BOARD_WALL_DIM - 1:
                 self.wallsAllowed[x + 1][VERTICAL][y] = False
         
-    def validateSimpleMove(self, move: str, pos: list, otherPlayer: Player):
+    def validateSimpleMove(self, move: str, pos: list, otherPlayer: Player) -> bool:
         x = pos[0]
         y = pos[1]
         if move == UP:
-            if x > 0 and (x != otherPlayer.x - 1 or y != otherPlayer.y):
-                row = self.wallsUsed[x - 1]
-                if y == 0:
-                    if row[0] == HORIZONTAL:
-                        return True
-                elif y == BOARD_PAWN_DIM - 1:
-                    if row[BOARD_WALL_DIM - 1] == HORIZONTAL:
-                        return True
-                elif row[y] == HORIZONTAL or row[y - 1] == HORIZONTAL:
-                    return True
+            if x == 0 or (x - 1 == otherPlayer.x and y == otherPlayer.y):
+                return False
+            row = self.wallsUsed[x - 1]
+            if y == 0:
+                if row[0] == HORIZONTAL:
+                    return False
+            elif y == BOARD_PAWN_DIM - 1:
+                if row[BOARD_WALL_DIM - 1] == HORIZONTAL:
+                    return False
+            elif row[y] == HORIZONTAL or row[y - 1] == HORIZONTAL:
+                return False
+
         elif move == DOWN:
-            if x < BOARD_PAWN_DIM - 1 and (x != otherPlayer.x + 1 or y != otherPlayer.y):
-                row = self.wallsUsed[x]
-                if y == 0:
-                    if row[0] == HORIZONTAL:
-                        return True
-                elif y == BOARD_PAWN_DIM - 1:
-                    if row[BOARD_WALL_DIM - 1] == HORIZONTAL:
-                        return True
-                elif row[y] == HORIZONTAL or row[y - 1] == HORIZONTAL:
-                    return True
+            if x == BOARD_PAWN_DIM - 1 or (x + 1 == otherPlayer.x and y == otherPlayer.y):
+                return False
+            row = self.wallsUsed[x]
+            if y == 0:
+                if row[0] == HORIZONTAL:
+                    return False
+            elif y == BOARD_PAWN_DIM - 1:
+                if row[BOARD_WALL_DIM - 1] == HORIZONTAL:
+                    return False
+            elif row[y] == HORIZONTAL or row[y - 1] == HORIZONTAL:
+                return False
+
         elif move == LEFT:
-            if y > 0 and (x != otherPlayer.x or y != otherPlayer.y - 1):
-                column_index = y - 1
-                if x == 0:
-                    if self.wallsUsed[x][column_index] == VERTICAL:
-                        return True
-                elif x == BOARD_PAWN_DIM - 1:
-                    if self.wallsUsed[BOARD_WALL_DIM - 1][column_index] == VERTICAL:
-                        return True
-                elif self.wallsUsed[x][column_index] == VERTICAL or self.wallsUsed[x - 1][column_index] == VERTICAL:
-                    return True
+            if y == 0 or (x == otherPlayer.x and y - 1 == otherPlayer.y):
+                return False
+            column_index = y - 1
+            if x == 0:
+                if self.wallsUsed[x][column_index] == VERTICAL:
+                    return False
+            elif x == BOARD_PAWN_DIM - 1:
+                if self.wallsUsed[BOARD_WALL_DIM - 1][column_index] == VERTICAL:
+                    return False
+            elif self.wallsUsed[x][column_index] == VERTICAL or self.wallsUsed[x - 1][column_index] == VERTICAL:
+                return False
 
         elif move == RIGHT:
-            if y < BOARD_PAWN_DIM - 1 and (x != otherPlayer.x or y != otherPlayer.y + 1):
-                column_index = y
-                if x == 0:
-                    if self.wallsUsed[x][column_index] == VERTICAL:
-                        return True
-                elif x == BOARD_PAWN_DIM - 1:
-                    if self.wallsUsed[BOARD_WALL_DIM - 1][column_index] == VERTICAL:
-                        return True
-                elif self.wallsUsed[x][column_index] == VERTICAL or self.wallsUsed[x - 1][column_index] == VERTICAL:
-                    return True
+            if y == BOARD_PAWN_DIM - 1 or (x == otherPlayer.x and y + 1 == otherPlayer.y):
+                return False
+            column_index = y
+            if x == 0:
+                if self.wallsUsed[x][column_index] == VERTICAL:
+                    return False
+            elif x == BOARD_PAWN_DIM - 1:
+                if self.wallsUsed[BOARD_WALL_DIM - 1][column_index] == VERTICAL:
+                    return False
+            elif self.wallsUsed[x][column_index] == VERTICAL or self.wallsUsed[x - 1][column_index] == VERTICAL:
+                return False
 
-
-        return False
+        return True
 
     def shortestMove(self, player: Player, otherPlayer: Player, winningRow: int) -> int:
         # calculate the shortest path to the end

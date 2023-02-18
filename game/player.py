@@ -9,10 +9,10 @@ class Player:
 
         self.human = human
 
-        self.walls : int = NO_WALLS
+        self.no_walls : int = NO_WALLS
 
     def decrementWalls(self):
-        self.walls -= 1
+        self.no_walls -= 1
 
     def getCoordinates(self):
         return self.x, self.y
@@ -41,6 +41,6 @@ class Player:
         player : Player = Player()
         player.x = self.x
         player.y = self.y
-        player.walls = self.walls
+        player.no_walls = self.no_walls
 
         return player

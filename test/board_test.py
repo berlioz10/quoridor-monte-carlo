@@ -283,20 +283,197 @@ class BoardTest(unittest.TestCase):
         # validate coordinates
         self.assertTrue(BoardTest.validate_coordinates(board, 0, 4, 8, 4))
 
-        player1.x = BOARD_PAWN_DIM // 2
-        player1.y = BOARD_PAWN_DIM // 2
+        x = BOARD_PAWN_DIM // 2
+        y = BOARD_PAWN_DIM // 2
 
-        # TODO
-        # valdate only with walls. you do not need the position of the second player
+        player1.x = x
+        player1.y = y
+
+        # FIRST CASE
+        # test wall that blocks UP move
+        try:
+            board.useWall(x - 1, y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(DOWN, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(LEFT, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+        
+        # test wall that blocks DOWN move
+        try:
+            board.useWall(x, y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(LEFT, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+        
+        # test wall that blocks LEFT move
+        try:
+            board.useWall(x, y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(LEFT, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+
+        # test wall that blocks RIGHT move
+        try:
+            board.useWall(x - 1, y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(LEFT, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(RIGHT, [x, y], player2))
+
+        # SECOND CASE
+
+        board = Board(player1, player2)
+        
+        # test wall that blocks UP move
+        try:
+            board.useWall(x - 1, y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(DOWN, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(LEFT, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+        
+        # test wall that blocks DOWN move
+        try:
+            board.useWall(x, y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(LEFT, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+        
+        # test wall that blocks LEFT move
+        try:
+            board.useWall(x - 1, y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(LEFT, [x, y], player2))
+        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+
+        # test wall that blocks RIGHT move
+        try:
+            board.useWall(x, y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(LEFT, [x, y], player2))
+        self.assertFalse(board.validateSimpleMove(RIGHT, [x, y], player2))
 
     def test_moves_validation(self):
         # TODO
         None
 
-    def test_get_actions(self):
+    def test_get_all_actions(self):
         # Reminder:
         # exclude tests that may give special moves
+        
+        # human: 0 4
+        # ai: 8 4
+        player1 = Player(True)
+        player2 = Player(False)
+        board = Board(player1, player2)
+        # validate coordinates
+        self.assertTrue(BoardTest.validate_coordinates(board, 0, 4, 8, 4))
+
+        # validations only for 0 walls ( simpler ones)
+        player1.no_walls = 0
+
+        player1.x = 0
+        player1.y = BOARD_PAWN_DIM // 2
+
+        # validate boundaries with corners as well
+        # UP should not be allowed
+        self.assertListEqual([DOWN, LEFT, RIGHT], board.getAllActionsForAPlayer(player1, player2))
+
+        player1.x = BOARD_PAWN_DIM - 1
+
+        # DOWN should not be allowed
+        self.assertListEqual([UP, LEFT, RIGHT], board.getAllActionsForAPlayer(player1, player2))
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = 0
+
+        # LEFT should not be allowed
+        self.assertListEqual([UP, DOWN, RIGHT], board.getAllActionsForAPlayer(player1, player2))
+
+        player1.y = BOARD_PAWN_DIM - 1
+
+        # RIGHT should not be allowed
+        self.assertListEqual([UP, DOWN, LEFT], board.getAllActionsForAPlayer(player1, player2))
+
+        player1.x = 0
+
+        # UP AND RIGHT should not be allowed
+        self.assertListEqual([DOWN, LEFT], board.getAllActionsForAPlayer(player1, player2))
+
+        player1.x = BOARD_PAWN_DIM - 1
+
+        # DOWN AND RIGHT should not be allowed
+        self.assertListEqual([UP, LEFT], board.getAllActionsForAPlayer(player1, player2))
+        
+        player1.x = 0
+        player1.y = 0
+
+        # UP AND LEFT should not be allowed
+        self.assertListEqual([DOWN, RIGHT], board.getAllActionsForAPlayer(player1, player2))
+
+        player1.x = BOARD_PAWN_DIM - 1
+
+        # DOWN AND LEFT should not be allowed
+        self.assertListEqual([UP, RIGHT], board.getAllActionsForAPlayer(player1, player2))
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+
+        # all moves should be allowed
+        self.assertListEqual([UP, DOWN, LEFT, RIGHT], board.getAllActionsForAPlayer(player1, player2))
+        x = BOARD_PAWN_DIM // 2
+        y = BOARD_PAWN_DIM // 2
+        # validate moves with walls
+        try:
+            board.useWall(x - 1, y - 1, HORIZONTAL)
+            board.useWall(x - 1, y, VERTICAL)
+            board.useWall(x, y - 1, VERTICAL)
+            board.useWall(x, y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getAllActionsForAPlayer(player1, player2))
+
+        # reset the board ( we do not want walls anywhere)
+        board = Board(player1, player2)
+        # reset the walls of the first player
+        player1.no_walls = 10
+        walls = []
+        for i in range(BOARD_WALL_DIM):
+            for j in range(BOARD_WALL_DIM):
+                walls.append((i, j, HORIZONTAL))
+                walls.append((i, j, VERTICAL))
+        
+        self.assertListEqual(walls + [UP, DOWN, LEFT, RIGHT], board.getAllActionsForAPlayer(player1, player2))
 
         # TODO
         # tests that may give special moves
-        None

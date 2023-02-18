@@ -28,7 +28,7 @@ class Board:
         actions_list = []
         
         # walls allowed ( only if the player has anymore walls to use)
-        if playerMove.walls != 0:
+        if playerMove.no_walls != 0:
             for i in range(BOARD_WALL_DIM):
                 for j in range(BOARD_WALL_DIM):
                     if self.wallsAllowed[i][HORIZONTAL][j] == True:

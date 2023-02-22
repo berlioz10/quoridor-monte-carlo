@@ -4,6 +4,7 @@ NO_WALLS = 10
 INFINITE = 2000000.0
 HORIZONTAL = "horizontal"
 VERTICAL = "vertical"
+NONE_WALL = "none_wall"
 
 # actions for a pawn
 UP = "up"

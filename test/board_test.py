@@ -2,7 +2,7 @@ import unittest
 
 from game.board import Board
 from game.player import Player
-from utils.consts import BOARD_PAWN_DIM, BOARD_WALL_DIM, DOWN, UP, HORIZONTAL, LEFT, RIGHT, VERTICAL
+from utils.consts import BOARD_PAWN_DIM, BOARD_WALL_DIM, DOWN, DOWN_DOWN, DOWN_LEFT, DOWN_RIGHT, LEFT_LEFT, RIGHT_RIGHT, UP, HORIZONTAL, LEFT, RIGHT, UP_LEFT, UP_RIGHT, UP_UP, VERTICAL
 
 class BoardTest(unittest.TestCase):
     def validate_coordinates(board: Board, player1x: int, player1y: int, player2x: int, player2y: int) -> bool:
@@ -386,9 +386,629 @@ class BoardTest(unittest.TestCase):
         # TODO
         None
 
+    def test_moves_near_player(self):
+        # human: 0 4
+        # ai: 8 4
+        player1 = Player(True)
+        player2 = Player(False)
+        board = Board(player1, player2)
+        # validate coordinates
+        self.assertTrue(BoardTest.validate_coordinates(board, 0, 4, 8, 4))
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([], board.getNearPlayerMoves(player2, player1))
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+        player2.x = BOARD_PAWN_DIM // 2 - 1
+        player2.y = BOARD_PAWN_DIM // 2
+        
+        # the player should have only UP jump, and player2 should have DOWN jump
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        player2.x = BOARD_PAWN_DIM // 2 + 1
+        # the player should have only DOWN jump, and player2 should have UP jump
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+        
+        player2.x = BOARD_PAWN_DIM // 2
+        player2.y = BOARD_PAWN_DIM // 2 - 1
+        
+        # the player should have only LEFT jump, and player2 should have RIGHT jump
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        player2.y = BOARD_PAWN_DIM // 2 + 1
+        # the player should have only DOWN jump, and player2 should have UP jump
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+
+        # validate moves with borders and corners
+
+        # for UP only/ first row:
+        player1.x = 1
+        player1.y = BOARD_PAWN_DIM // 2
+        player2.x = 0
+        player2.y = BOARD_PAWN_DIM // 2
+
+        # middle of the row
+        self.assertListEqual([UP_LEFT, UP_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([UP_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        player1.y = 0
+        player2.y = 0
+
+        # left corner
+        self.assertListEqual([UP_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x, player2.y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        player1.y = BOARD_PAWN_DIM - 1
+        player2.y = BOARD_PAWN_DIM - 1
+
+        # right corner
+        self.assertListEqual([UP_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        
+        # for DOWN only/ last row:
+        player1.x = BOARD_PAWN_DIM - 2
+        player1.y = BOARD_PAWN_DIM // 2
+        player2.x = BOARD_PAWN_DIM - 1
+        player2.y = BOARD_PAWN_DIM // 2
+
+        # middle of the row
+        self.assertListEqual([DOWN_LEFT, DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        board.useWall(player2.x - 1, player2.y, VERTICAL)
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        player1.y = 0
+        player2.y = 0
+
+        # left corner
+        self.assertListEqual([DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x - 1, player2.y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        player1.y = BOARD_PAWN_DIM - 1
+        player2.y = BOARD_PAWN_DIM - 1
+
+        # right corner
+        self.assertListEqual([DOWN_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        # reset the board for corners, but now, from left - right perspective 
+        board = Board(player1, player2)
+
+        # for RIGHT only/ last column:
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM - 2
+        player2.x = BOARD_PAWN_DIM // 2
+        player2.y = BOARD_PAWN_DIM - 1
+
+        # middle of the column
+        self.assertListEqual([UP_RIGHT, DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+
+        player1.x = 0
+        player2.x = 0
+
+        # up corner
+        self.assertListEqual([DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+
+        player1.x = BOARD_PAWN_DIM - 1
+        player2.x = BOARD_PAWN_DIM - 1
+
+        # down corner
+        self.assertListEqual([UP_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+
+        # for LEFT only/ first column:
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = 1
+        player2.x = BOARD_PAWN_DIM // 2
+        player2.y = 0
+
+        # middle of the column
+        self.assertListEqual([UP_LEFT, DOWN_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x - 1, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([DOWN_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        player1.x = 0
+        player2.x = 0
+
+        # up corner
+        self.assertListEqual([DOWN_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        player1.x = BOARD_PAWN_DIM - 1
+        player2.x = BOARD_PAWN_DIM - 1
+
+        # down corner
+        self.assertListEqual([UP_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x - 1, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        # in center, with walls near them, that will give special moves like UP_LEFT
+        # UP first case
+        # reset the board
+        board = Board(player1, player2)
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+        player2.x = BOARD_PAWN_DIM // 2 - 1
+        player2.y = BOARD_PAWN_DIM // 2
+
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([UP_LEFT, UP_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([UP_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([], board.getNearPlayerMoves(player2, player1))
+        # UP second case
+        # reset the board
+        board = Board(player1, player2)
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+        player2.x = BOARD_PAWN_DIM // 2 - 1
+        player2.y = BOARD_PAWN_DIM // 2
+
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([UP_LEFT, UP_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([UP_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([], board.getNearPlayerMoves(player2, player1))
+
+        # DOWN first case
+        # reset the board
+        board = Board(player1, player2)
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+        player2.x = BOARD_PAWN_DIM // 2 + 1
+        player2.y = BOARD_PAWN_DIM // 2
+
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([DOWN_LEFT, DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([], board.getNearPlayerMoves(player2, player1))
+        
+        # DOWN second case
+        # reset the board
+        board = Board(player1, player2)
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+        player2.x = BOARD_PAWN_DIM // 2 + 1
+        player2.y = BOARD_PAWN_DIM // 2
+
+        self.assertListEqual([DOWN_DOWN], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([DOWN_LEFT, DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([DOWN_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([UP_UP], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([], board.getNearPlayerMoves(player2, player1))
+
+        # LEFT first case
+        # reset the board
+        board = Board(player1, player2)
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+        player2.x = BOARD_PAWN_DIM // 2
+        player2.y = BOARD_PAWN_DIM // 2 - 1
+
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([UP_LEFT, DOWN_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([UP_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([], board.getNearPlayerMoves(player2, player1))
+        # UP second case
+        # reset the board
+        board = Board(player1, player2)
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+        player2.x = BOARD_PAWN_DIM // 2
+        player2.y = BOARD_PAWN_DIM // 2 - 1
+
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([UP_LEFT, DOWN_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([DOWN_LEFT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([], board.getNearPlayerMoves(player2, player1))
+
+        # RIGHT first case
+        # reset the board
+        board = Board(player1, player2)
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+        player2.x = BOARD_PAWN_DIM // 2
+        player2.y = BOARD_PAWN_DIM // 2 + 1
+
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([UP_RIGHT, DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([UP_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([], board.getNearPlayerMoves(player2, player1))
+        
+        # DOWN second case
+        # reset the board
+        board = Board(player1, player2)
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+        player2.x = BOARD_PAWN_DIM // 2
+        player2.y = BOARD_PAWN_DIM // 2 + 1
+
+        self.assertListEqual([RIGHT_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x - 1, player2.y, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([UP_RIGHT, DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+        
+        try:
+            board.useWall(player2.x - 1, player2.y - 1, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([DOWN_RIGHT], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+        
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([LEFT_LEFT], board.getNearPlayerMoves(player2, player1))
+
+        try:
+            board.useWall(player2.x, player2.y - 1, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+            
+        self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
+        self.assertListEqual([], board.getNearPlayerMoves(player2, player1))
+
+    def validate_shortest_path(self):
+        # TODO
+        # validate also with a row of walls and a pawn ( to see if it makes the jump)
+        None
+
     def test_get_all_actions(self):
-        # Reminder:
-        # exclude tests that may give special moves
         
         # human: 0 4
         # ai: 8 4

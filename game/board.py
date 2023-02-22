@@ -1,6 +1,6 @@
 import copy
 from game.player import Player
-from utils.consts import BOARD_PAWN_DIM, BOARD_WALL_DIM, DOWN, HORIZONTAL, LEFT, RIGHT, UP, VERTICAL
+from utils.consts import BOARD_PAWN_DIM, BOARD_WALL_DIM, DOWN, DOWN_DOWN, DOWN_LEFT, DOWN_RIGHT, HORIZONTAL, LEFT, LEFT_LEFT, NONE_WALL, RIGHT, RIGHT_RIGHT, UP, UP_LEFT, UP_RIGHT, UP_UP, VERTICAL
 
 class Board:
     def __init__(self, player1: Player, player2: Player):
@@ -11,7 +11,7 @@ class Board:
         
         for _ in range(BOARD_WALL_DIM):
             self.wallsAllowed.append({HORIZONTAL: [True for _ in range(BOARD_WALL_DIM)], VERTICAL: [True for _ in range(BOARD_WALL_DIM)]})
-            self.wallsUsed.append(["" for _ in range(BOARD_WALL_DIM)])
+            self.wallsUsed.append([NONE_WALL for _ in range(BOARD_WALL_DIM)])
 
         # left-right
         # for _ in range(BOARD_PAWN_DIM):
@@ -162,11 +162,230 @@ class Board:
 
         return True
 
+    def getNearPlayerMoves(self, playerMove: Player, otherPlayer: Player) -> list:
+        # see if the players are close to each other
+        okNearPlayer = False
+        if playerMove.x == otherPlayer.x:
+            # left
+            if playerMove.y == otherPlayer.y + 1:
+                ok1 = True
+                ok2 = True
+                if playerMove.x > 0:
+                    if self.wallsUsed[playerMove.x - 1][playerMove.y - 1] == VERTICAL:
+                        ok1 = False
+                if playerMove.x < BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[playerMove.x][playerMove.y - 1] == VERTICAL:
+                        ok2 = False
+
+                if ok1 and ok2:
+                    okNearPlayer = True
+            # right
+            if playerMove.y == otherPlayer.y - 1:
+                ok1 = True
+                ok2 = True
+                if playerMove.x > 0:
+                    if self.wallsUsed[playerMove.x - 1][playerMove.y] == VERTICAL:
+                        ok1 = False
+                if playerMove.x < BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[playerMove.x][playerMove.y] == VERTICAL:
+                        ok2 = False
+
+                if ok1 and ok2:
+                    okNearPlayer = True
+
+        if playerMove.y == otherPlayer.y:
+            # up
+            if playerMove.x == otherPlayer.x + 1:
+                ok1 = True
+                ok2 = True
+                if playerMove.y > 0:
+                    if self.wallsUsed[playerMove.x - 1][playerMove.y - 1] == HORIZONTAL:
+                        ok1 = False
+                if playerMove.y < BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[playerMove.x - 1][playerMove.y] == HORIZONTAL:
+                        ok2 = False
+
+                if ok1 and ok2:
+                    okNearPlayer = True
+            if playerMove.x == otherPlayer.x - 1:
+                ok1 = True
+                ok2 = True
+                if playerMove.y > 0:
+                    if self.wallsUsed[playerMove.x][playerMove.y - 1] == HORIZONTAL:
+                        ok1 = False
+                if playerMove.y < BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[playerMove.x][playerMove.y] == HORIZONTAL:
+                        ok2 = False
+
+                if ok1 and ok2:
+                    okNearPlayer = True
+
+        if okNearPlayer == False:
+            return []
+
+        moves = []
+
+        # verify if the player is UP
+        if playerMove.x == otherPlayer.x + 1:
+            # verify there is no border behind the pawn for UP UP
+            if otherPlayer.x != 0:
+                okMove = False
+                if otherPlayer.y == 0:
+                    if self.wallsUsed[otherPlayer.x - 1][otherPlayer.y] != HORIZONTAL:
+                        moves.append(UP_UP)
+                        okMove = True
+                elif otherPlayer.y == BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[otherPlayer.x - 1][otherPlayer.y - 1] != HORIZONTAL:
+                        moves.append(UP_UP)
+                        okMove = True    
+                elif self.wallsUsed[otherPlayer.x - 1][otherPlayer.y - 1] != HORIZONTAL and self.wallsUsed[otherPlayer.x - 1][otherPlayer.y] != HORIZONTAL:
+                    moves.append(UP_UP)
+                    okMove = True
+                
+                if okMove == False:
+                    if otherPlayer.y > 0:
+                        if self.wallsUsed[otherPlayer.x][otherPlayer.y - 1] != VERTICAL and self.wallsUsed[otherPlayer.x - 1][otherPlayer.y - 1] != VERTICAL:
+                            moves.append(UP_LEFT)
+                    if otherPlayer.y < BOARD_PAWN_DIM - 1:
+                        if self.wallsUsed[otherPlayer.x][otherPlayer.y] != VERTICAL and self.wallsUsed[otherPlayer.x - 1][otherPlayer.y] != VERTICAL:
+                            moves.append(UP_RIGHT)
+            # then it means it is on the first row, so it may be possible to jump LEFT UP or RIGHT UP
+            else:
+                # verify for LEFT UP
+                if otherPlayer.y > 0:
+                    if self.wallsUsed[0][otherPlayer.y - 1] != VERTICAL:
+                        moves.append(UP_LEFT)
+                # verify for RIGHT UP
+                if otherPlayer.y < BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[0][otherPlayer.y] != VERTICAL:
+                        moves.append(UP_RIGHT)
+           
+        # verify if the player is DOWN
+        if playerMove.x == otherPlayer.x - 1:
+            # verify there is no border behind the pawn for DOWN DOWN
+            if otherPlayer.x != BOARD_PAWN_DIM - 1:
+                okMove = False
+                if otherPlayer.y == 0:
+                    if self.wallsUsed[otherPlayer.x][otherPlayer.y] != HORIZONTAL:
+                        moves.append(DOWN_DOWN)
+                        okMove = True
+                elif otherPlayer.y == BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[otherPlayer.x][otherPlayer.y - 1] != HORIZONTAL:
+                        moves.append(DOWN_DOWN)
+                        okMove = True    
+                elif self.wallsUsed[otherPlayer.x][otherPlayer.y - 1] != HORIZONTAL and self.wallsUsed[otherPlayer.x][otherPlayer.y] != HORIZONTAL:
+                    moves.append(DOWN_DOWN)
+                    okMove = True
+                
+                if okMove == False:
+                    if otherPlayer.y > 0:
+                        if self.wallsUsed[otherPlayer.x][otherPlayer.y - 1] != VERTICAL and self.wallsUsed[otherPlayer.x - 1][otherPlayer.y - 1] != VERTICAL:
+                            moves.append(DOWN_LEFT)
+                    if otherPlayer.y < BOARD_PAWN_DIM - 1:
+                        if self.wallsUsed[otherPlayer.x][otherPlayer.y] != VERTICAL and self.wallsUsed[otherPlayer.x - 1][otherPlayer.y] != VERTICAL:
+                            moves.append(DOWN_RIGHT)
+            # then it means it is on the last row, so it may be possible to jump LEFT DOWN or RIGHT DOWN
+            else:
+                # verify for LEFT DOWN
+                if otherPlayer.y > 0:
+                    if self.wallsUsed[otherPlayer.x - 1][otherPlayer.y - 1] != VERTICAL:
+                        moves.append(DOWN_LEFT)
+                # verify for RIGHT DOWN
+                if otherPlayer.y < BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[otherPlayer.x - 1][otherPlayer.y] != VERTICAL:
+                        moves.append(DOWN_RIGHT)
+
+        # verify if the player is LEFT
+        if playerMove.y == otherPlayer.y + 1:
+            # verify there is no border behind the pawn for LEFT LEFT
+            if otherPlayer.y != 0:
+                okMove = False
+                if otherPlayer.x == 0:
+                    if self.wallsUsed[otherPlayer.x][otherPlayer.y - 1] != VERTICAL:
+                        moves.append(LEFT_LEFT)
+                        okMove = True
+                elif otherPlayer.x == BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[otherPlayer.x - 1][otherPlayer.y - 1] != VERTICAL:
+                        moves.append(LEFT_LEFT)
+                        okMove = True    
+                elif self.wallsUsed[otherPlayer.x - 1][otherPlayer.y - 1] != VERTICAL and self.wallsUsed[otherPlayer.x][otherPlayer.y - 1] != VERTICAL:
+                    moves.append(LEFT_LEFT)
+                    okMove = True
+                
+                if okMove == False:
+                    if otherPlayer.x > 0:
+                        if self.wallsUsed[otherPlayer.x - 1][otherPlayer.y - 1] != HORIZONTAL and self.wallsUsed[otherPlayer.x - 1][otherPlayer.y] != HORIZONTAL:
+                            moves.append(UP_LEFT)
+                    if otherPlayer.x < BOARD_PAWN_DIM - 1:
+                        if self.wallsUsed[otherPlayer.x][otherPlayer.y] != HORIZONTAL and self.wallsUsed[otherPlayer.x][otherPlayer.y - 1] != HORIZONTAL:
+                            moves.append(DOWN_LEFT)
+            # then it means it is on the first column, so it may be possible to jump LEFT UP or LEFT DOWN
+            else:
+                # verify for LEFT UP
+                if otherPlayer.x > 0:
+                    if self.wallsUsed[otherPlayer.x - 1][0] != HORIZONTAL:
+                        moves.append(UP_LEFT)
+                # verify for LEFT DOWN
+                if otherPlayer.x < BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[otherPlayer.x][0] != HORIZONTAL:
+                        moves.append(DOWN_LEFT)
+
+        
+        # verify if the player is RIGHT
+        if playerMove.y == otherPlayer.y - 1:
+            # verify there is no border behind the pawn for RIGHT RIGHT
+            if otherPlayer.y != BOARD_PAWN_DIM - 1:
+                okMove = False
+                if otherPlayer.x == 0:
+                    if self.wallsUsed[otherPlayer.x][otherPlayer.y] != VERTICAL:
+                        moves.append(RIGHT_RIGHT)
+                        okMove = True
+                elif otherPlayer.x == BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[otherPlayer.x - 1][otherPlayer.y] != VERTICAL:
+                        moves.append(RIGHT_RIGHT)
+                        okMove = True    
+                elif self.wallsUsed[otherPlayer.x - 1][otherPlayer.y] != VERTICAL and self.wallsUsed[otherPlayer.x][otherPlayer.y] != VERTICAL:
+                    moves.append(RIGHT_RIGHT)
+                    okMove = True
+                
+                if okMove == False:
+                    if otherPlayer.x > 0:
+                        if self.wallsUsed[otherPlayer.x - 1][otherPlayer.y] != HORIZONTAL and self.wallsUsed[otherPlayer.x - 1][otherPlayer.y - 1] != HORIZONTAL:
+                            moves.append(UP_RIGHT)
+                    if otherPlayer.x < BOARD_PAWN_DIM - 1:
+                        if self.wallsUsed[otherPlayer.x][otherPlayer.y - 1] != HORIZONTAL and self.wallsUsed[otherPlayer.x][otherPlayer.y] != HORIZONTAL:
+                            moves.append(DOWN_RIGHT)
+            # then it means it is on the last column, so it may be possible to jump RIGHT UP or RIGHT DOWN
+            else:
+                # verify for RIGHT UP
+                if otherPlayer.x > 0:
+                    if self.wallsUsed[otherPlayer.x - 1][otherPlayer.y - 1] != HORIZONTAL:
+                        moves.append(UP_RIGHT)
+                # verify for RIGHT DOWN
+                if otherPlayer.x < BOARD_PAWN_DIM - 1:
+                    if self.wallsUsed[otherPlayer.x][otherPlayer.y - 1] != HORIZONTAL:
+                        moves.append(DOWN_RIGHT)
+
+        return moves
+
     def shortestMove(self, player: Player, otherPlayer: Player, winningRow: int) -> int:
         # calculate the shortest path to the end
         lee = [[0 for _ in range(BOARD_PAWN_DIM)] for _ in range(BOARD_PAWN_DIM)]
 
-        moves = { DOWN: [1, 0], UP: [-1, 0], RIGHT: [0, 1], LEFT: [0, -1]}
+        moves = { 
+            DOWN: [1, 0], 
+            UP: [-1, 0], 
+            RIGHT: [0, 1], 
+            LEFT: [0, -1],
+            DOWN_DOWN: [2, 0],
+            DOWN_RIGHT: [1, 1],
+            RIGHT_RIGHT: [0, 2],
+            UP_RIGHT: [-1, 1],
+            UP_UP: [-2, 0],
+            UP_LEFT: [-1, -1],
+            LEFT_LEFT: [0, -2],
+            DOWN_LEFT: [1, -1]
+        }
 
         q = [[player.x, player.y]]
 

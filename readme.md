@@ -1,9 +1,7 @@
 # To dos
 
-1. Test cases on the board 
-2. See if you can use the GUI from gorisanson 
-3. 
-
+1. See if you can use the GUI from gorisanson 
+2. Tests on game states/ nodes
 
 # run tests
 

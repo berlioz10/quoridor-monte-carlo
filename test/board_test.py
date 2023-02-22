@@ -137,10 +137,7 @@ class BoardTest(unittest.TestCase):
         # . X .
         # . . .
         # UP move should be false
-        self.assertTrue(board.validateSimpleMove(LEFT, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(DOWN, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(UP, [player1.x, player1.y], player2))
+        self.assertListEqual([DOWN, LEFT, RIGHT], board.getSimpleMoves(player1, player2))
 
         player1.x = BOARD_PAWN_DIM // 2
         player1.y = 0
@@ -150,10 +147,7 @@ class BoardTest(unittest.TestCase):
         # - X .
         # - . .
         # LEFT move should be false
-        self.assertTrue(board.validateSimpleMove(DOWN, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(UP, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(LEFT, [player1.x, player1.y], player2))
+        self.assertListEqual([UP, DOWN, RIGHT], board.getSimpleMoves(player1, player2))
 
         player1.y = BOARD_PAWN_DIM - 1
 
@@ -162,10 +156,7 @@ class BoardTest(unittest.TestCase):
         # . X -
         # . . -
         # RIGHT move should be false
-        self.assertTrue(board.validateSimpleMove(LEFT, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(UP, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(DOWN, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(RIGHT, [player1.x, player1.y], player2))
+        self.assertListEqual([UP, DOWN, LEFT], board.getSimpleMoves(player1, player2))
 
         player1.x = BOARD_PAWN_DIM - 1
         player1.y = BOARD_PAWN_DIM // 2
@@ -174,10 +165,7 @@ class BoardTest(unittest.TestCase):
         # . X .
         # -----
         # DOWN move should be false
-        self.assertTrue(board.validateSimpleMove(LEFT, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(UP, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(DOWN, [player1.x, player1.y], player2))
+        self.assertListEqual([UP, LEFT, RIGHT], board.getSimpleMoves(player1, player2))
 
         player1.x = 0
         player1.y = BOARD_PAWN_DIM - 1
@@ -186,10 +174,7 @@ class BoardTest(unittest.TestCase):
         # . X -
         # . . -
         # UP and RIGHT move should be false
-        self.assertTrue(board.validateSimpleMove(LEFT, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(DOWN, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(RIGHT, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(UP, [player1.x, player1.y], player2))
+        self.assertListEqual([DOWN, LEFT], board.getSimpleMoves(player1, player2))
 
         player1.x = 0
         player1.y = 0
@@ -198,10 +183,7 @@ class BoardTest(unittest.TestCase):
         # - X .
         # - . .
         # UP and LEFT move should be false
-        self.assertTrue(board.validateSimpleMove(DOWN, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(LEFT, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(UP, [player1.x, player1.y], player2))
+        self.assertListEqual([DOWN, RIGHT], board.getSimpleMoves(player1, player2))
 
         player1.x = BOARD_PAWN_DIM - 1
         player1.y = 0
@@ -210,10 +192,7 @@ class BoardTest(unittest.TestCase):
         # - X .
         # -----
         # DOWN and LEFT move should be false
-        self.assertTrue(board.validateSimpleMove(UP, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(DOWN, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(LEFT, [player1.x, player1.y], player2))
+        self.assertListEqual([UP, RIGHT], board.getSimpleMoves(player1, player2))
 
         player1.x = BOARD_PAWN_DIM - 1
         player1.y = BOARD_PAWN_DIM - 1
@@ -222,10 +201,7 @@ class BoardTest(unittest.TestCase):
         # . X -
         # -----
         # RIGHT and DOWN move should be false
-        self.assertTrue(board.validateSimpleMove(UP, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(LEFT, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(DOWN, [player1.x, player1.y], player2))
-        self.assertFalse(board.validateSimpleMove(RIGHT, [player1.x, player1.y], player2))
+        self.assertListEqual([UP, LEFT], board.getSimpleMoves(player1, player2))
         
         player1.x = BOARD_PAWN_DIM // 2
         player1.y = BOARD_PAWN_DIM // 2
@@ -234,10 +210,7 @@ class BoardTest(unittest.TestCase):
         # . X .
         # . . .
         # None should be false
-        self.assertTrue(board.validateSimpleMove(UP, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(LEFT, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(DOWN, [player1.x, player1.y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [player1.x, player1.y], player2))
+        self.assertListEqual([UP, DOWN, LEFT, RIGHT], board.getSimpleMoves(player1, player2))
 
         player2.x = player1.x
         player2.y = player1.y + 1
@@ -246,15 +219,15 @@ class BoardTest(unittest.TestCase):
         # . X Y
         # . . .
         # RIGHT should be false
-        self.assertFalse(board.validateSimpleMove(RIGHT, [player1.x, player1.y], player2))
-        
+        self.assertListEqual([UP, DOWN, LEFT], board.getSimpleMoves(player1, player2))
+
         player2.y = player1.y - 1
         # player1 with player2 is located like this:
         # . . .
         # Y X .
         # . . .
         # LEFT should be false
-        self.assertFalse(board.validateSimpleMove(LEFT, [player1.x, player1.y], player2))
+        self.assertListEqual([UP, DOWN, RIGHT], board.getSimpleMoves(player1, player2))
 
         player2.x = player1.x + 1
         player2.y = player1.y
@@ -263,7 +236,7 @@ class BoardTest(unittest.TestCase):
         # . X .
         # . Y .
         # DOWN should be false
-        self.assertFalse(board.validateSimpleMove(DOWN, [player1.x, player1.y], player2))
+        self.assertListEqual([UP, LEFT, RIGHT], board.getSimpleMoves(player1, player2))
 
         player2.x = player1.x - 1
         # player1 with player2 is located like this:
@@ -271,7 +244,7 @@ class BoardTest(unittest.TestCase):
         # . X .
         # . . .
         # UP should be false
-        self.assertFalse(board.validateSimpleMove(UP, [player1.x, player1.y], player2))
+        self.assertListEqual([DOWN, LEFT, RIGHT], board.getSimpleMoves(player1, player2))
 
     def test_moves_with_walls_position_board(self):
         # start position:
@@ -296,21 +269,15 @@ class BoardTest(unittest.TestCase):
         except:
             self.fail("The position of this wall should not have thrown errors!")
 
-        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(DOWN, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(LEFT, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+        self.assertListEqual([DOWN, LEFT, RIGHT], board.getSimpleMoves(player1, player2))
         
         # test wall that blocks DOWN move
         try:
             board.useWall(x, y, HORIZONTAL)
         except:
             self.fail("The position of this wall should not have thrown errors!")
-
-        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(LEFT, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+        
+        self.assertListEqual([LEFT, RIGHT], board.getSimpleMoves(player1, player2))
         
         # test wall that blocks LEFT move
         try:
@@ -318,10 +285,7 @@ class BoardTest(unittest.TestCase):
         except:
             self.fail("The position of this wall should not have thrown errors!")
 
-        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(LEFT, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+        self.assertListEqual([RIGHT], board.getSimpleMoves(player1, player2))
 
         # test wall that blocks RIGHT move
         try:
@@ -329,10 +293,7 @@ class BoardTest(unittest.TestCase):
         except:
             self.fail("The position of this wall should not have thrown errors!")
 
-        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(LEFT, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(RIGHT, [x, y], player2))
+        self.assertListEqual([], board.getSimpleMoves(player1, player2))
 
         # SECOND CASE
 
@@ -344,10 +305,7 @@ class BoardTest(unittest.TestCase):
         except:
             self.fail("The position of this wall should not have thrown errors!")
 
-        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(DOWN, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(LEFT, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+        self.assertListEqual([DOWN, LEFT, RIGHT], board.getSimpleMoves(player1, player2))
         
         # test wall that blocks DOWN move
         try:
@@ -355,10 +313,7 @@ class BoardTest(unittest.TestCase):
         except:
             self.fail("The position of this wall should not have thrown errors!")
 
-        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(LEFT, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+        self.assertListEqual([LEFT, RIGHT], board.getSimpleMoves(player1, player2))
         
         # test wall that blocks LEFT move
         try:
@@ -366,10 +321,7 @@ class BoardTest(unittest.TestCase):
         except:
             self.fail("The position of this wall should not have thrown errors!")
 
-        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(LEFT, [x, y], player2))
-        self.assertTrue(board.validateSimpleMove(RIGHT, [x, y], player2))
+        self.assertListEqual([RIGHT], board.getSimpleMoves(player1, player2))
 
         # test wall that blocks RIGHT move
         try:
@@ -377,16 +329,9 @@ class BoardTest(unittest.TestCase):
         except:
             self.fail("The position of this wall should not have thrown errors!")
 
-        self.assertFalse(board.validateSimpleMove(UP, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(DOWN, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(LEFT, [x, y], player2))
-        self.assertFalse(board.validateSimpleMove(RIGHT, [x, y], player2))
+        self.assertListEqual([], board.getSimpleMoves(player1, player2))
 
-    def test_moves_validation(self):
-        # TODO
-        None
-
-    def test_moves_near_player(self):
+    def test_moves_players_next_to_each_other(self):
         # human: 0 4
         # ai: 8 4
         player1 = Player(True)
@@ -1003,10 +948,23 @@ class BoardTest(unittest.TestCase):
         self.assertListEqual([], board.getNearPlayerMoves(player1, player2))
         self.assertListEqual([], board.getNearPlayerMoves(player2, player1))
 
-    def validate_shortest_path(self):
+    def test_shortest_path(self):
         # TODO
         # validate also with a row of walls and a pawn ( to see if it makes the jump)
-        None
+        # start position:
+        # human: 0 4
+        # ai: 8 4
+        player1 = Player(True)
+        player2 = Player(False)
+        board = Board(player1, player2)
+        
+        # validate coordinates
+        self.assertTrue(BoardTest.validate_coordinates(board, 0, 4, 8, 4))
+
+        # validate with no walls on board
+
+        self.assertEqual(8, board.shortestPathScore(player1, player2, BOARD_PAWN_DIM - 1))
+        self.assertEqual(8, board.shortestPathScore(player2, player1, 0))
 
     def test_get_all_actions(self):
         

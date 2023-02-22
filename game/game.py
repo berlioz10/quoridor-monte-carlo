@@ -24,8 +24,8 @@ class Game:
                 # adding a new rule for AI:
                 self.board.useWall(move[0], move[1], move[2])
                 try:
-                    self.board.shortestMove(self.AIPlayer, self.humanPlayer, 0)
-                    self.board.shortestMove(self.AIPlayer, self.humanPlayer, BOARD_PAWN_DIM - 1)
+                    self.board.shortestPathScore(self.AIPlayer, self.humanPlayer, 0)
+                    self.board.shortestPathScore(self.AIPlayer, self.humanPlayer, BOARD_PAWN_DIM - 1)
                 except Exception:
                     self.gameEnd = True
                     self.humanPlayerWon = not self.humanTurn
@@ -60,8 +60,8 @@ class Game:
         return self.humanPlayerWon
 
     def simulateGame(self) -> int:
-        score1 = self.board.shortestMove(self.AIPlayer, self.humanPlayer, 0)
-        score2 = self.board.shortestMove(self.humanPlayer, self.AIPlayer, BOARD_PAWN_DIM - 1)
+        score1 = self.board.shortestPathScore(self.AIPlayer, self.humanPlayer, 0)
+        score2 = self.board.shortestPathScore(self.humanPlayer, self.AIPlayer, BOARD_PAWN_DIM - 1)
         if score1 == score2:
             if self.humanTurn:
                 score2 -= 1

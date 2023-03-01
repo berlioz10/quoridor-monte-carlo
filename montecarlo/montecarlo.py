@@ -5,7 +5,7 @@ class MonteCarlo:
     def __init__(self, humanFirstTurn : bool = True):
         game = Game(humanFirstTurn)
 
-        self.root : Node = Node(parent=None, game=game, move=None)
+        self.root : Node = Node(None, game, None)
 
     # selection:
     # choose a leaf, by the best score
@@ -54,7 +54,7 @@ class MonteCarlo:
     # we go through all parents until we meet the root and update it with the new values
     def backpropagation(self, node: Node, AIWon: bool) -> None:
 
-        while node.parent != None:
+        while node is not None:
             node.updateVisits(AIWon)
             node = node.parent
 

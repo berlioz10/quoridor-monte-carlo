@@ -4,9 +4,9 @@ from game.game import Game
 from utils.consts import INFINITE
 
 class Node:
-    def __init__(self, parent: 'Node', game: Game, move: tuple | str | None):
+    def __init__(self, parent: 'Node | None', game: Game, move: tuple | str | None):
         self.children : list[Node] = []
-        self.parent : Node = parent
+        self.parent : Node | None = parent
 
         # select the move
         self.move = move
@@ -40,12 +40,13 @@ class Node:
         c = sqrt(2)
 
         # formula for UCB Score
+        
         return self.win_games / self.total_games + c * sqrt(log(self.parent.total_games) / self.total_games)
 
     def selectRandomChildWithBestUCBScore(self) -> 'Node':
 
         ucb_max_score = max(self.children, key=lambda x : x.UCBScore())
-        ucb_max_children = list(filter(lambda x: x.UCBScore() == ucb_max_score, self.children))
+        ucb_max_children = list(filter(lambda x: x.UCBScore() == ucb_max_score.UCBScore(), self.children))
 
         return random.choice(ucb_max_children)
 

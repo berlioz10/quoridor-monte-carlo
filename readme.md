@@ -2,6 +2,9 @@
 
 1. See if you can use the GUI from gorisanson 
 2. Tests on game states/ nodes
+# Version
+
+For this application, Python version is 3.11.0.
 
 # run tests
 

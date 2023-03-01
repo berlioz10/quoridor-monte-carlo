@@ -392,6 +392,7 @@ class Board:
             for move in special_moves:
                 x = pos[0] + moves[move][0]
                 y = pos[1] + moves[move][1]
+
                 if lee[pos[0]][pos[1]] + 1 < lee[x][y] or lee[x][y] == 0:
                         lee[x][y] = lee[pos[0]][pos[1]] + 1  
                         q.append([x, y])
@@ -399,7 +400,7 @@ class Board:
         min_values = [x for x in lee[winningRow] if x != 0]
 
         if len(min_values) == 0:
-            raise Exception("Impossible to finish")
+            raise Exception("Impossible to go to the opposite row!")
         
         '''
         for row in lee:

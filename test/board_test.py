@@ -961,10 +961,116 @@ class BoardTest(unittest.TestCase):
         # validate coordinates
         self.assertTrue(BoardTest.validate_coordinates(board, 0, 4, 8, 4))
 
-        # validate with no walls on board
+        # validate without walls on board
+
+        self.assertEqual(BOARD_PAWN_DIM - 1, board.shortestPathScore(player1, player2, BOARD_PAWN_DIM - 1))
+        self.assertEqual(BOARD_PAWN_DIM - 1, board.shortestPathScore(player2, player1, 0))
+
+        player1.x = BOARD_PAWN_DIM // 2
+        player1.y = BOARD_PAWN_DIM // 2
+        
+        self.assertEqual(BOARD_PAWN_DIM // 2, board.shortestPathScore(player1, player2, BOARD_PAWN_DIM - 1))
+        self.assertEqual(BOARD_PAWN_DIM - 2, board.shortestPathScore(player2, player1, 0))
+        
+        player1.x = BOARD_PAWN_DIM // 2 - 1
+        player1.y = BOARD_PAWN_DIM // 2 + 2
+
+        self.assertEqual(BOARD_PAWN_DIM // 2 + 1, board.shortestPathScore(player1, player2, BOARD_PAWN_DIM - 1))
+        self.assertEqual(BOARD_PAWN_DIM - 1, board.shortestPathScore(player2, player1, 0))
+
+        player1.x = BOARD_PAWN_DIM // 2 + 1
+        
+        self.assertEqual(BOARD_PAWN_DIM // 2 - 1, board.shortestPathScore(player1, player2, BOARD_PAWN_DIM - 1))
+        self.assertEqual(BOARD_PAWN_DIM - 1, board.shortestPathScore(player2, player1, 0))
+
+        player1.x = BOARD_PAWN_DIM - 1
+
+        self.assertEqual(0, board.shortestPathScore(player1, player2, BOARD_PAWN_DIM - 1))
+        self.assertEqual(BOARD_PAWN_DIM - 1, board.shortestPathScore(player2, player1, 0))
+
+        # validate with walls ( try to make a labyrinth :D)
+        # future tests will be only for board with size 9
+        # if you see this comment, be sure that BOARD_PAWN_DIM from consts file has the value of 9
+
+        player1.x = 0
+        player1.y = 4
+        player2.x = 8
+        player2.y = 4
+
+        try:
+            board.useWall(0, 4, HORIZONTAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        
+        self.assertEqual(9, board.shortestPathScore(player1, player2, BOARD_PAWN_DIM - 1))
+        self.assertEqual(9, board.shortestPathScore(player2, player1, 0))
+        
+        try:
+            board.useWall(0, 3, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertEqual(10, board.shortestPathScore(player1, player2, BOARD_PAWN_DIM - 1))
+        self.assertEqual(9, board.shortestPathScore(player2, player1, 0))
+        
+        # trying to create a maze for player1
+        # it would look like this:
+        # .   .   .   . X A   .   . X .   .
+        #     X X X     X X X X     X
+        # . X .   . X . X .   .   . X .   .
+        #   X       X         X X X
+        # . X .   . X .   . X .   .   .   .
+        #             X X X X
+        # . X .   .   .   . X .   .   .   .
+        #   X
+        # . X .   .   .   .   .   .   .   .
+        #     X X X X X X
+        # .   .   .   .   . X .   .   .   .
+        # X X X X X X X     X
+        # .   .   .   . X . X .   .   .   .
+        #               X
+        # .   .   .   . X . X .   .   .   .
+        #         X X X     X
+        # .   .   .   .   B X .   .   .   .
+        try:
+            board.useWall(0, 1, HORIZONTAL)
+            board.useWall(0, 6, VERTICAL)
+            board.useWall(1, 0, VERTICAL)
+            board.useWall(1, 2, VERTICAL)
+            board.useWall(1, 5, HORIZONTAL)
+            board.useWall(2, 3, HORIZONTAL)
+            board.useWall(2, 4, VERTICAL)
+            board.useWall(3, 0, VERTICAL)
+            board.useWall(4, 1, HORIZONTAL)
+            board.useWall(4, 3, HORIZONTAL)
+            board.useWall(5, 0, HORIZONTAL)
+            board.useWall(5, 2, HORIZONTAL)
+            board.useWall(5, 4, VERTICAL)
+            board.useWall(6, 3, VERTICAL)
+            board.useWall(7, 2, HORIZONTAL)
+            board.useWall(7, 4, VERTICAL)
+        except:
+            self.fail("The position of this wall should not have thrown errors!")
+
+        self.assertEqual(24, board.shortestPathScore(player1, player2, BOARD_PAWN_DIM - 1))
+        self.assertEqual(12, board.shortestPathScore(player2, player1, 0))
+
+        player1.y = 7
+        player2.y = 7
 
         self.assertEqual(8, board.shortestPathScore(player1, player2, BOARD_PAWN_DIM - 1))
         self.assertEqual(8, board.shortestPathScore(player2, player1, 0))
+
+        player1.x = 6
+        player1.y = 3
+        player2.x = 7
+        player2.y = 3
+        
+        self.assertEqual(3, board.shortestPathScore(player1, player2, BOARD_PAWN_DIM - 1))
+        self.assertEqual(18, board.shortestPathScore(player2, player1, 0))
+        
+
 
     def test_get_all_actions(self):
         

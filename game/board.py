@@ -3,15 +3,16 @@ from game.player import Player
 from utils.consts import BOARD_PAWN_DIM, BOARD_WALL_DIM, DOWN, DOWN_DOWN, DOWN_LEFT, DOWN_RIGHT, HORIZONTAL, LEFT, LEFT_LEFT, NONE_WALL, RIGHT, RIGHT_RIGHT, UP, UP_LEFT, UP_RIGHT, UP_UP, VERTICAL
 
 class Board:
-    def __init__(self, player1: Player, player2: Player):
+    def __init__(self, player1: Player, player2: Player, deepCopy = False):
         self.wallsAllowed = []
         self.wallsUsed = []
         self.leftRight = []
         self.upDown = []
         
-        for _ in range(BOARD_WALL_DIM):
-            self.wallsAllowed.append({HORIZONTAL: [True for _ in range(BOARD_WALL_DIM)], VERTICAL: [True for _ in range(BOARD_WALL_DIM)]})
-            self.wallsUsed.append([NONE_WALL for _ in range(BOARD_WALL_DIM)])
+        if not deepCopy:
+            for _ in range(BOARD_WALL_DIM):
+                self.wallsAllowed.append({HORIZONTAL: [True for _ in range(BOARD_WALL_DIM)], VERTICAL: [True for _ in range(BOARD_WALL_DIM)]})
+                self.wallsUsed.append([NONE_WALL for _ in range(BOARD_WALL_DIM)])
 
         # left-right
         # for _ in range(BOARD_PAWN_DIM):
@@ -37,7 +38,6 @@ class Board:
                         actions_list.append((i, j, VERTICAL))
         
         # the moves the player which moves is allowed ( without considering the other player, only as a "wall")
-
         actions_list = actions_list + self.getSimpleMoves(playerMove, otherPlayer)
 
         actions_list = actions_list + self.getNearPlayerMoves(playerMove, otherPlayer)
@@ -352,6 +352,10 @@ class Board:
     # it uses Lee's Algorithm
     def shortestPathScore(self, player: Player, otherPlayer: Player, winningRow: int) -> int:
         # calculate the shortest path to the end
+
+        insignifiantPlayer = Player()
+        insignifiantPlayer.x = -2
+        insignifiantPlayer.y = -2
         lee = [[0 for _ in range(BOARD_PAWN_DIM)] for _ in range(BOARD_PAWN_DIM)]
 
         moves = { 
@@ -377,7 +381,7 @@ class Board:
             newPlayerPosition = Player()
             newPlayerPosition.x = pos[0]
             newPlayerPosition.y = pos[1]
-            simple_moves = self.getSimpleMoves(newPlayerPosition, otherPlayer)
+            simple_moves = self.getSimpleMoves(newPlayerPosition, insignifiantPlayer)
             special_moves = self.getNearPlayerMoves(newPlayerPosition, otherPlayer)
             # simple moves
             for move in simple_moves:
@@ -387,7 +391,7 @@ class Board:
                 if lee[pos[0]][pos[1]] + 1 < lee[x][y] or lee[x][y] == 0:
                     lee[x][y] = lee[pos[0]][pos[1]] + 1  
                     q.append([x, y])
-                
+            
             # special moves ( players that are next to each other)
             for move in special_moves:
                 x = pos[0] + moves[move][0]
@@ -396,11 +400,66 @@ class Board:
                 if lee[pos[0]][pos[1]] + 1 < lee[x][y] or lee[x][y] == 0:
                         lee[x][y] = lee[pos[0]][pos[1]] + 1  
                         q.append([x, y])
-
+            
         min_values = [x for x in lee[winningRow] if x != 0]
 
         if len(min_values) == 0:
-            raise Exception("Impossible to go to the opposite row!")
+            return -1
+        '''
+        for row in lee:
+            for el in row:
+                print(el, end=" ")
+            print()
+        '''        
+        ct = min(min_values)
+
+        return ct - 1
+
+    def shortestPathMove(self, player: Player, otherPlayer: Player, winningRow: int) -> str:
+        # calculate the shortest path to the end
+        lee = [[[0, ""] for _ in range(BOARD_PAWN_DIM)] for _ in range(BOARD_PAWN_DIM)]
+
+        moves = { 
+            DOWN: [1, 0], 
+            UP: [-1, 0], 
+            RIGHT: [0, 1], 
+            LEFT: [0, -1],
+            DOWN_DOWN: [2, 0],
+            DOWN_RIGHT: [1, 1],
+            RIGHT_RIGHT: [0, 2],
+            UP_RIGHT: [-1, 1],
+            UP_UP: [-2, 0],
+            UP_LEFT: [-1, -1],
+            LEFT_LEFT: [0, -2],
+            DOWN_LEFT: [1, -1]
+        }
+
+        q = [[player.x, player.y]]
+
+        lee[player.x][player.y][0] = 1
+        while len(q) != 0:
+            pos = q.pop(0)
+            newPlayerPosition = Player()
+            newPlayerPosition.x = pos[0]
+            newPlayerPosition.y = pos[1]
+            simple_moves = self.getSimpleMoves(newPlayerPosition, otherPlayer)
+            special_moves = self.getNearPlayerMoves(newPlayerPosition, otherPlayer)
+            # simple moves
+            for move in simple_moves + special_moves:
+                x = pos[0] + moves[move][0]
+                y = pos[1] + moves[move][1]
+                
+                if lee[pos[0]][pos[1]][0] + 1 < lee[x][y][0] or lee[x][y][0] == 0:
+                    if lee[pos[0]][pos[1]][0] == 1:
+                        lee[pos[0]][pos[1]][1] = move
+                    lee[x][y][0] = lee[pos[0]][pos[1]][0] + 1
+                    lee[x][y][1] = lee[pos[0]][pos[1]][1]
+                    q.append([x, y])
+            
+        min_values = [x for x in lee[winningRow] if x[0] != 0]
+
+        if len(min_values) == 0:
+            return ""
         
         '''
         for row in lee:
@@ -408,14 +467,18 @@ class Board:
                 print(el, end=" ")
             print()
         '''        
-
         ct = min(min_values)
 
-        return ct - 1
+        return ct[1]
 
     def deepCopy(self, player1: Player, player2: Player) -> 'Board':
-        board = Board(player1, player2)
-        board.wallsAllowed = copy.deepcopy(self.wallsAllowed)
-        board.wallsUsed = copy.deepcopy(self.wallsUsed)
+        board = Board(player1, player2, deepCopy=True)
+
+        board.wallsAllowed = []
+        board.wallsUsed = []
+
+        for i in range(BOARD_WALL_DIM):
+            board.wallsAllowed.append({HORIZONTAL: [self.wallsAllowed[i][HORIZONTAL][j] for j in range(BOARD_WALL_DIM)], VERTICAL: [self.wallsAllowed[i][VERTICAL][j] for j in range(BOARD_WALL_DIM)]})
+            board.wallsUsed.append([self.wallsUsed[i][j] for j in range(BOARD_WALL_DIM)])
 
         return board

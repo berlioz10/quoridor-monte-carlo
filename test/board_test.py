@@ -1025,9 +1025,9 @@ class BoardTest(unittest.TestCase):
         # . X .   .   .   . X .   .   .   .
         #   X
         # . X .   .   .   .   .   .   .   .
-        #     X X X X X X
+        #     X X X   X X X
         # .   .   .   .   . X .   .   .   .
-        # X X X X X X X     X
+        # X X X   X X X     X
         # .   .   .   . X . X .   .   .   .
         #               X
         # .   .   .   . X . X .   .   .   .

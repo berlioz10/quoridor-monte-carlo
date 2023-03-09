@@ -1,3 +1,4 @@
+import random
 from game.game import Game
 from montecarlo.node import Node
 
@@ -24,9 +25,8 @@ class MonteCarlo:
     # but if in that node, the game is finished, then we return false
     # ( the return will tell if we simulate the game or not) 
     def expansion(self, node : Node) -> tuple[Node, bool]:
-        if node.gameFinished():
+        if node.gameFinished() or not node.simulatedOnce:
             return node, False
-
         node.createChildren()
 
         node = node.selectRandomChildWithBestUCBScore()
@@ -39,8 +39,8 @@ class MonteCarlo:
     def simulation(self, node: Node) -> bool:
         if node.gameFinished():
             return not node.humanWon()
-
-        score = node.game.simulateGame()
+        score = node.simulateGame()
+        
         # Also add random walls in front of them from each player if they have
         # TODO
         
@@ -61,8 +61,41 @@ class MonteCarlo:
 
     # running all the monte carlo tree search steps
     def run(self, no: int = 2000):
-        for _ in range(no):
+        for i in range(no):
+            #print(i)
             node : Node = self.selection()
             node, _ = self.expansion(node)
             AIWon : bool = self.simulation(node)
             self.backpropagation(node, AIWon)
+
+    def letAImakeNextMove(self):
+        if self.root.game.humanTurn == True:
+            raise Exception("It is not AI's turn!")
+        best_child_winrate = max(self.root.children, key=lambda x : x.win_games / x.total_games)
+        winrate = best_child_winrate.win_games / best_child_winrate.total_games
+        print("Winrate: " + str(winrate))
+        print("No. old root children: " + str(len(self.root.children)))
+        
+        ucb_max_children = list(filter(lambda x: x.win_games / x.total_games == winrate, self.root.children))
+
+        self.root = random.choice(ucb_max_children)
+        print("Move applied: " + str(self.root.move))
+        self.root.parent = None
+
+    def letPlayerMakeNextMove(self, move: tuple | str):
+        if self.root.game.humanTurn == False:
+            raise Exception("It is not human's turn!")
+        
+        for child in self.root.children:
+            if child.move == move:
+                print("Old winrate: " + str(self.root.win_games / self.root.total_games))
+                self.root = child
+                self.root.parent = None
+                
+                print("New winrate: " + str(self.root.win_games / self.root.total_games))
+                print("No. new root children: " + str(len(self.root.children)))
+                return
+        
+        
+        raise Exception("Impossible move!")
+

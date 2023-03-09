@@ -1,3 +1,4 @@
+import copy
 from math import log, sqrt
 import random
 from game.game import Game
@@ -12,17 +13,22 @@ class Node:
         self.move = move
 
         self.game = game
-
+        self.simulatedOnce = False
         self.total_games = 0
         self.win_games = 0
 
     def createChildren(self):
 
         all_actions = self.game.getAllActions()
+        
+        if len(all_actions) == 0:
+            node = self
+            while node is not None:
+                node = node.parent
 
         for action in all_actions:
             game = self.game.deepCopy()
-            game.nextMove(action)
+            game.makeMove(action)
             node = Node(self, game, action)
             self.children.append(node)
 
@@ -46,10 +52,16 @@ class Node:
     def selectRandomChildWithBestUCBScore(self) -> 'Node':
 
         ucb_max_score = max(self.children, key=lambda x : x.UCBScore())
+        # print("Winrate: " + str(ucb_max_score))
+        # print("No. children: " + str(len(self.children)))
+        
         ucb_max_children = list(filter(lambda x: x.UCBScore() == ucb_max_score.UCBScore(), self.children))
 
         return random.choice(ucb_max_children)
 
+    def simulateGame(self) -> int:
+        self.simulatedOnce = True
+        return self.game.simulateGameV2()
 
     def updateVisits(self, win : bool = False):
         # alternative: rollout

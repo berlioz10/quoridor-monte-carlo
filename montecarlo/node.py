@@ -19,7 +19,7 @@ class Node:
 
     def createChildren(self):
 
-        all_actions = self.game.getAllActions()
+        all_actions = self.game.get_all_actions()
         
         if len(all_actions) == 0:
             node = self
@@ -27,8 +27,8 @@ class Node:
                 node = node.parent
 
         for action in all_actions:
-            game = self.game.deepCopy()
-            game.makeMove(action)
+            game = self.game.deepcopy()
+            game.make_move(action)
             node = Node(self, game, action)
             self.children.append(node)
 
@@ -61,7 +61,7 @@ class Node:
 
     def simulateGame(self) -> int:
         self.simulatedOnce = True
-        return self.game.simulateGameV2()
+        return self.game.simulate_gameV2()
 
     def updateVisits(self, win : bool = False):
         # alternative: rollout
@@ -70,7 +70,7 @@ class Node:
             self.win_games += 1
 
     def gameFinished(self) -> bool:
-        return self.game.gameFinished()
+        return self.game.game_finished()
 
     def humanWon(self) -> bool:
-        return self.game.humanWon()
+        return self.game.human_won()

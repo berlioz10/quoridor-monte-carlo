@@ -10,7 +10,7 @@ if __name__ == '__main__':
     okHumanTurn = False
     monteCarlo = MonteCarlo(humanFirstTurn=okHumanTurn)
     
-    game = Game(humanFirstTurn=True)
+    game = Game(human_turn=True)
     '''
     game.makeMove((1, 0, VERTICAL))
     game.makeMove((2, 1, HORIZONTAL))
@@ -50,9 +50,9 @@ if __name__ == '__main__':
                 except Exception:
                     x = input("Move doesn't exist or it is impossible, try again: ")
         else:
-            monteCarlo.run(no=2000)
+            monteCarlo.run(no=1000)
             monteCarlo.letAImakeNextMove()
 
-        monteCarlo.root.game.printGame()
+        monteCarlo.root.game.print_game()
 
         okHumanTurn = not okHumanTurn

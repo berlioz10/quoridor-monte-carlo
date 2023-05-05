@@ -69,7 +69,7 @@ class MonteCarlo:
             self.backpropagation(node, AIWon)
 
     def letAImakeNextMove(self):
-        if self.root.game.humanTurn == True:
+        if self.root.game.human_turn == True:
             raise Exception("It is not AI's turn!")
         best_child_winrate = max(self.root.children, key=lambda x : x.win_games / x.total_games)
         winrate = best_child_winrate.win_games / best_child_winrate.total_games
@@ -83,7 +83,7 @@ class MonteCarlo:
         self.root.parent = None
 
     def letPlayerMakeNextMove(self, move: tuple | str):
-        if self.root.game.humanTurn == False:
+        if self.root.game.human_turn == False:
             raise Exception("It is not human's turn!")
         
         for child in self.root.children:

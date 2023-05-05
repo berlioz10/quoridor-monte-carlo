@@ -4,20 +4,22 @@ class Player:
     def __init__(self, human : bool = True):
         self.y : int = BOARD_PAWN_DIM // 2
         self.x : int = BOARD_PAWN_DIM - 1
+        self.end_line : int = 0
         if human:
             self.x = 0
+            self.end_line = BOARD_PAWN_DIM - 1
 
         self.human = human
 
         self.no_walls : int = NO_WALLS
 
-    def decrementWalls(self):
+    def decrement_walls(self):
         self.no_walls -= 1
 
-    def getCoordinates(self):
+    def get_coordinates(self):
         return self.x, self.y
 
-    def playMove(self, move: str):
+    def play_move(self, move: str):
         if move == UP:
             if self.x == 0:
                 raise Exception("It is already on the first row, cannot go upper!")
@@ -80,7 +82,7 @@ class Player:
             self.y += 2
         
 
-    def isOnOppositeRow(self):
+    def is_on_opposite_row(self):
         if self.human:
             if self.x == BOARD_PAWN_DIM - 1:
                 return True
@@ -90,10 +92,18 @@ class Player:
         return False
 
     
-    def deepCopy(self) -> 'Player':
+    def deepcopy(self) -> 'Player':
         player : Player = Player(self.human)
         player.x = self.x
         player.y = self.y
         player.no_walls = self.no_walls
 
         return player
+    
+    def reset(self):
+        self.x = BOARD_PAWN_DIM - 1
+        self.y = BOARD_PAWN_DIM // 2
+        if self.end_line == BOARD_PAWN_DIM - 1:
+            self.x = 0
+        
+        self.no_walls : int = NO_WALLS

@@ -14,9 +14,9 @@ class MonteCarlo:
     def selection(self) -> Node:
         node : Node = self.root
         # we want to select a node that is a leaf
-        while not node.gameFinished() and len(node.children) != 0:
+        while not node.game_finished() and len(node.children) != 0:
             # select by the best UCB
-            node = node.selectRandomChildWithBestUCBScore()
+            node = node.select_random_child_with_best_UCB_score()
 
         return node
 
@@ -25,11 +25,11 @@ class MonteCarlo:
     # but if in that node, the game is finished, then we return false
     # ( the return will tell if we simulate the game or not) 
     def expansion(self, node : Node) -> tuple[Node, bool]:
-        if node.gameFinished() or not node.simulatedOnce:
+        if node.game_finished() or not node.simulatedOnce:
             return node, False
-        node.createChildren()
+        node.create_children()
 
-        node = node.selectRandomChildWithBestUCBScore()
+        node = node.select_random_child_with_best_UCB_score()
 
         return node, True
 
@@ -37,9 +37,9 @@ class MonteCarlo:
     # for first, we will simulate only one game of Quoridor, in an heuristic way
     # simulation returns if the AI Player won or not 
     def simulation(self, node: Node) -> bool:
-        if node.gameFinished():
-            return not node.humanWon()
-        score = node.simulateGame()
+        if node.game_finished():
+            return not node.human_won()
+        score = node.simulate_game()
         
         # Also add random walls in front of them from each player if they have
         # TODO
@@ -55,7 +55,7 @@ class MonteCarlo:
     def backpropagation(self, node: Node, AIWon: bool) -> None:
 
         while node is not None:
-            node.updateVisits(AIWon)
+            node.update_visits(AIWon)
             node = node.parent
 
 
@@ -68,7 +68,7 @@ class MonteCarlo:
             AIWon : bool = self.simulation(node)
             self.backpropagation(node, AIWon)
 
-    def letAImakeNextMove(self):
+    def let_AI_make_next_move(self):
         if self.root.game.human_turn == True:
             raise Exception("It is not AI's turn!")
         best_child_winrate = max(self.root.children, key=lambda x : x.win_games / x.total_games)
@@ -82,7 +82,7 @@ class MonteCarlo:
         print("Move applied: " + str(self.root.move))
         self.root.parent = None
 
-    def letPlayerMakeNextMove(self, move: tuple | str):
+    def let_player_make_next_move(self, move: tuple | str):
         if self.root.game.human_turn == False:
             raise Exception("It is not human's turn!")
         

@@ -61,10 +61,13 @@ def update_params(worker_opt: torch.optim.Adam, values, logprobs, rewards, clc=0
     Returns = F.normalize(Returns, dim=0)
     # REINFORCE loss
     actor_loss = -1 * logprobs * (Returns - values.detach())
+    # MSE loss
     critic_loss = torch.pow(values - Returns, 2)
+    
     loss = actor_loss.sum() + clc * critic_loss.sum()
     loss.backward()
     worker_opt.step()
+
     return actor_loss, critic_loss, len(rewards)
 
 

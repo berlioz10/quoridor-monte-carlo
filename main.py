@@ -25,9 +25,9 @@ if __name__ == '__main__':
     game.AIPlayer.y = 2
     '''
     while True:
-        if monteCarlo.root.gameFinished():
+        if monteCarlo.root.game_finished():
             print("The winner is ", end="")
-            if monteCarlo.root.humanWon():
+            if monteCarlo.root.human_won():
                 print("the person!")
             else:
                 print("the AI!")
@@ -45,13 +45,13 @@ if __name__ == '__main__':
                     x = (int(possible_tuple[0]), int(possible_tuple[1]), possible_tuple[2])
                 
                 try: 
-                    monteCarlo.letPlayerMakeNextMove(x)
+                    monteCarlo.let_player_make_next_move(x)
                     ok = False
                 except Exception:
                     x = input("Move doesn't exist or it is impossible, try again: ")
         else:
-            monteCarlo.run(no=1000)
-            monteCarlo.letAImakeNextMove()
+            monteCarlo.run(no=2000)
+            monteCarlo.let_AI_make_next_move()
 
         monteCarlo.root.game.print_game()
 

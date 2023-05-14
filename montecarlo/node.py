@@ -17,7 +17,7 @@ class Node:
         self.total_games = 0
         self.win_games = 0
 
-    def createChildren(self):
+    def create_children(self):
 
         all_actions = self.game.get_all_actions()
         
@@ -32,7 +32,7 @@ class Node:
             node = Node(self, game, action)
             self.children.append(node)
 
-    def UCBScore(self) -> float:
+    def UCB_score(self) -> float:
 
         # for the root, we cannot calculate the UCB score
         if self.parent == None:
@@ -49,28 +49,28 @@ class Node:
         
         return self.win_games / self.total_games + c * sqrt(log(self.parent.total_games) / self.total_games)
 
-    def selectRandomChildWithBestUCBScore(self) -> 'Node':
+    def select_random_child_with_best_UCB_score(self) -> 'Node':
 
-        ucb_max_score = max(self.children, key=lambda x : x.UCBScore())
+        ucb_max_score = max(self.children, key=lambda x : x.UCB_score())
         # print("Winrate: " + str(ucb_max_score))
         # print("No. children: " + str(len(self.children)))
         
-        ucb_max_children = list(filter(lambda x: x.UCBScore() == ucb_max_score.UCBScore(), self.children))
+        ucb_max_children = list(filter(lambda x: x.UCB_score() == ucb_max_score.UCB_score(), self.children))
 
         return random.choice(ucb_max_children)
 
-    def simulateGame(self) -> int:
+    def simulate_game(self) -> int:
         self.simulatedOnce = True
         return self.game.simulate_gameV2()
 
-    def updateVisits(self, win : bool = False):
+    def update_visits(self, win : bool = False):
         # alternative: rollout
         self.total_games += 1
         if win:
             self.win_games += 1
 
-    def gameFinished(self) -> bool:
+    def game_finished(self) -> bool:
         return self.game.game_finished()
 
-    def humanWon(self) -> bool:
+    def human_won(self) -> bool:
         return self.game.human_won()

@@ -2,7 +2,7 @@ import random
 import numpy as np
 from game.board import Board
 from game.player import Player
-from utils.consts import BOARD_PAWN_DIM, BOARD_WALL_DIM, DOWN, DOWN_DOWN, DOWN_LEFT, DOWN_RIGHT, HORIZONTAL, LEFT, LEFT_LEFT, NONE_WALL, RIGHT, RIGHT_RIGHT, UP, UP_LEFT, UP_RIGHT, UP_UP, VERTICAL
+from utils.consts import BOARD_PAWN_DIM, BOARD_WALL_DIM, DOWN, DOWN_DOWN, DOWN_LEFT, DOWN_RIGHT, HORIZONTAL, LEFT, LEFT_LEFT, NO_WALLS, NONE_WALL, RIGHT, RIGHT_RIGHT, UP, UP_LEFT, UP_RIGHT, UP_UP, VERTICAL
 
 class Game:
     # a board
@@ -217,10 +217,10 @@ class Game:
         actions = self.get_all_actions()
     
         if move not in actions:
-            reward = -10
+            reward = -30
             done = True
         else:
-            reward = 2
+            reward = 0
             self.make_move(move)
             done = self.game_finished()
 
@@ -240,12 +240,13 @@ class Game:
                 game.make_move(move)
             
             if game.human_won():
-                reward += -5
+                reward -= game.board.shortest_path_score(game.AI_player, game.human_player, game.AI_player.end_line)
             else:
-                reward += 5
-        print(move)
-        self.print_game()
-        print(done)
+                reward += 3 + game.board.shortest_path_score(game.human_player, game.AI_player, game.human_player.end_line)
+        
+        # print(move)
+        # self.print_game()
+        # print(done)
         return reward, done
     
     def make_random_move(self) -> tuple[int, bool]:
@@ -292,3 +293,34 @@ class Game:
         self.human_turn = human_turn
         self.game_end = False
         self.human_player_won = None
+
+    def reset_custom(self, human_turn=False, random_position=False, custom_walls=NO_WALLS):
+        self.human_player.reset()
+        self.AI_player.reset()
+        self.board.reset()
+        
+        self.human_turn = human_turn
+        self.game_end = False
+        self.human_player_won = None
+
+        if random_position:
+            self.human_player.x = random.randint(0, BOARD_PAWN_DIM // 2 - 1)
+            self.human_player.y = random.randint(0, BOARD_PAWN_DIM)
+
+            self.AI_player.x = random.randint(BOARD_PAWN_DIM // 2 + 1, BOARD_PAWN_DIM - 1)
+            self.AI_player.y = random.randint(0, BOARD_PAWN_DIM)
+
+        self.human_player.no_walls = custom_walls
+        self.AI_player.no_walls = custom_walls
+
+        for _ in range((NO_WALLS - custom_walls) * 2):
+            x = random.randint(0, BOARD_WALL_DIM)
+            y = random.randint(0, BOARD_WALL_DIM)
+
+            position = VERTICAL if random.randint(0, 1) else HORIZONTAL
+
+            while self.board.use_wall_restrictive(x, y, position):
+                x = random.randint(0, BOARD_WALL_DIM)
+                y = random.randint(0, BOARD_WALL_DIM)
+
+                position = VERTICAL if random.randint(0, 1) != 0 else HORIZONTAL

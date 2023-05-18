@@ -99,6 +99,41 @@ class Board:
             if x < BOARD_WALL_DIM - 1:
                 self.walls_allowed[x + 1][VERTICAL][y] = False
 
+    def use_wall_restrictive(self, x: int, y: int, position: str) -> bool:
+        if x < 0 or x > BOARD_WALL_DIM - 1 or y < 0 or y > BOARD_WALL_DIM - 1:
+            return False 
+        if position != HORIZONTAL and position != VERTICAL:
+            return False
+
+        if self.walls_allowed[x][position][y] == False:
+            return False
+
+        if self.shortest_path_score(self.player1, self.player2, self.player1.end_line) == -1 or \
+            self.shortest_path_score(self.player2, self.player1, self.player2.end_line) == -1:
+            return False
+
+        self.walls_allowed[x][HORIZONTAL][y] = False
+        self.walls_allowed[x][VERTICAL][y] = False
+        self.walls_used[x][y] = position
+
+        if position == HORIZONTAL:
+            if y > 0:
+                self.walls_allowed[x][HORIZONTAL][y - 1] = False
+                
+            
+            if y < BOARD_WALL_DIM - 1:
+                self.walls_allowed[x][HORIZONTAL][y + 1] = False 
+        
+        
+        if position == VERTICAL:
+            if x > 0:
+                self.walls_allowed[x - 1][VERTICAL][y] = False
+            
+            if x < BOARD_WALL_DIM - 1:
+                self.walls_allowed[x + 1][VERTICAL][y] = False
+
+        return True
+
     # validates all simple moves and return them as a list
     # this is a simple version, as in it does not interfere with special actions with another player
     # ( like jumping him etc.)
@@ -374,7 +409,7 @@ class Board:
             if x > 0:
                 if self.walls_used[x - 1][y] == VERTICAL:
                     return False
-            if x < BOARD_WALL_DIM:
+            if x < BOARD_WALL_DIM - 1:
                 if self.walls_used[x + 1][y] == VERTICAL:
                     return False
             if y > 0:
@@ -394,7 +429,7 @@ class Board:
             if y > 0:
                 if self.walls_used[x][y - 1] == HORIZONTAL:
                     return False
-            if y < BOARD_WALL_DIM:
+            if y < BOARD_WALL_DIM - 1:
                 if self.walls_used[x][y + 1] == HORIZONTAL:
                     return False
             if x > 0:

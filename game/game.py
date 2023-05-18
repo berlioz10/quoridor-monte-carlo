@@ -8,9 +8,9 @@ class Game:
     # a board
     # players - 2
     # human first turn or not
-    def __init__(self, human_turn : bool = True, deepCopy = False):
+    def __init__(self, human_turn : bool = True, deep_copy = False):
 
-        if not deepCopy:        
+        if not deep_copy:        
             self.human_player : Player = Player(human=True)
             self.AI_player : Player = Player(human=False)
 
@@ -44,13 +44,13 @@ class Game:
                 else:
                     self.AI_player.play_move(move)
             
-            # Verify if the game has finished and change the values of gameEnd and humanPlayerWon
-            AIPlayerWon = self.AI_player.is_on_opposite_row()
-            humanPlayerWon = self.human_player.is_on_opposite_row()
+            # Verify if the game has finished and change the values of gameEnd and human_player_won
+            AI_player_won = self.AI_player.is_on_opposite_row()
+            human_player_won = self.human_player.is_on_opposite_row()
 
-            if AIPlayerWon or humanPlayerWon:
+            if AI_player_won or human_player_won:
                 self.game_end = True
-                self.human_player_won = humanPlayerWon
+                self.human_player_won = human_player_won
 
             self.human_turn = not self.human_turn
         except Exception as err:
@@ -128,7 +128,7 @@ class Game:
         return 1
 
     def deepcopy(self) -> 'Game':
-        game = Game(True if self.human_turn else False, deepCopy=True)
+        game = Game(True if self.human_turn else False, deep_copy=True)
         game.human_player = self.human_player.deepcopy()
         game.AI_player = self.AI_player.deepcopy()
         game.board = self.board.deepcopy(game.AI_player, game.human_player)

@@ -35,6 +35,8 @@ class Board:
                     if self.walls_allowed[i][HORIZONTAL][j] == True:
                         if player_move.no_walls == NO_WALLS and other_player.no_walls == NO_WALLS:
                             actions_list.append((i, j, HORIZONTAL))
+                        elif self.no_near_wall((i, j, HORIZONTAL)):
+                            actions_list.append((i, j, HORIZONTAL))
                         else:
                             self.walls_used[i][j] = HORIZONTAL
                             score1 = self.shortest_path_score(player_move, other_player, player_move.end_line)
@@ -44,6 +46,8 @@ class Board:
                             self.walls_used[i][j] = NONE_WALL
                     if self.walls_allowed[i][VERTICAL][j] == True:
                         if player_move.no_walls == NO_WALLS and other_player.no_walls == NO_WALLS:
+                            actions_list.append((i, j, VERTICAL))
+                        elif self.no_near_wall((i, j, VERTICAL)):
                             actions_list.append((i, j, VERTICAL))
                         else:
                             self.walls_used[i][j] = VERTICAL
@@ -362,6 +366,54 @@ class Board:
                         moves.append(DOWN_RIGHT)
 
         return moves
+    
+    def no_near_wall(self, move: tuple) -> bool:
+        x, y, position = move
+        
+        if position == HORIZONTAL:
+            if x > 0:
+                if self.walls_used[x - 1][y] == VERTICAL:
+                    return False
+            if x < BOARD_WALL_DIM:
+                if self.walls_used[x + 1][y] == VERTICAL:
+                    return False
+            if y > 0:
+                if self.walls_used[x][y - 1] == VERTICAL:
+                    return False
+            if y < BOARD_WALL_DIM - 1:
+                if self.walls_used[x][y + 1] == VERTICAL:
+                    return False
+            if y > 1:
+                if self.walls_used[x][y - 2] == HORIZONTAL:
+                    return False
+            if y < BOARD_WALL_DIM - 2:
+                if self.walls_used[x][y + 2] == HORIZONTAL:
+                    return False
+        
+        elif position == VERTICAL:
+            if y > 0:
+                if self.walls_used[x][y - 1] == HORIZONTAL:
+                    return False
+            if y < BOARD_WALL_DIM:
+                if self.walls_used[x][y + 1] == HORIZONTAL:
+                    return False
+            if x > 0:
+                if self.walls_used[x - 1][y] == HORIZONTAL:
+                    return False
+            if x < BOARD_WALL_DIM - 1:
+                if self.walls_used[x + 1][y] == HORIZONTAL:
+                    return False
+            if x > 1:
+                if self.walls_used[x - 2][y] == VERTICAL:
+                    return False
+            if x < BOARD_WALL_DIM - 2:
+                if self.walls_used[x + 2][y] == VERTICAL:
+                    return False
+
+
+
+        return True
+
 
     # calculates how many more moves it has to make until it arrives to the opposite row
     # also it has to be mentioned that it finds the path with the shortest number of moves

@@ -1,45 +1,67 @@
 import torch
 from game.game import Game
-from networks.actor_critic import ActorCritic
+from network.actor_critic import ActorCritic
 import multiprocessing as mp
 import numpy as np
 import random
 
-from networks.workers import simple_worker
+from matplotlib import pyplot as plt
+from network.actor_critic_conv import ActorCriticConv
+
+from network.workers import custom_worker, custom_worker_conv
+from utils.consts import NO_WALLS
+from utils.functions import Functions
 
 if __name__ == '__main__':
-    MasterNode = ActorCritic()
+    MasterNode = ActorCriticConv()
     MasterNode.share_memory()
     processes : list[mp.Process] = []
     # it would be prefered that you use a number of threads divizible by 4
     params = {
-    'epochs':1000,
-    'n_workers':16,
+    'epochs': 1000,
+    'n_workers': 8,
+    'lr': 1e-4,
+    'gamma': 0.95,
+    'clc': 0.15,
+    'eps': 0.7,
+    'random_position': Functions.return_false,
+    'custom_walls': Functions.return_number_of_walls,
+    'human_turn': Functions.return_false
     }
 
     counter = mp.Value('i', 0)
-    for i in range(params['n_workers'] / 4):
-        p = mp.Process(target=simple_worker, args=(i, MasterNode, counter, params))
+
+    it = params['n_workers'] // 4
+
+    ep_list = mp.Array('d', range(params['epochs'] * it))
+    loss_list = mp.Array('d', range(params['epochs'] * it))
+    # list3 = mp.Array('d', range(params['epochs'] * it))
+    # list4 = mp.Array('d', range(params['epochs'] * it))
+
+    for i in range(it):
+        p = mp.Process(target=custom_worker_conv, args=(i, MasterNode, ep_list, loss_list, params))
         p.start()
         processes.append(p)
 
-    for i in range(params['n_workers'] / 4):
-        p = mp.Process(target=simple_worker, args=(i, MasterNode, counter, params))
-        p.start()
-        processes.append(p)
-
-    for i in range(params['n_workers'] / 4):
-        p = mp.Process(target=simple_worker, args=(i, MasterNode, counter, params))
-        p.start()
-        processes.append(p)
-
-    for i in range(params['n_workers'] / 4):
-        p = mp.Process(target=simple_worker, args=(i, MasterNode, counter, params))
-        p.start()
-        processes.append(p)
+        params['human_turn'] = Functions.return_true
         
     for p in processes:
         p.join()
 
     for p in processes:
         p.terminate()
+
+
+    figure, axis = plt.subplots(2, 1)
+    
+    axis[0].plot(ep_list[0:params['epochs']], label='AI first turn episode length')
+    axis[0].plot(ep_list[params['epochs']:], label='AI second turn episode length')
+    axis[0].legend()
+    axis[0].set_title("Episode length per epochs")
+
+    axis[1].plot(loss_list[0:params['epochs']], label='AI first turn loss')
+    axis[1].plot(loss_list[params['epochs']:], label='AI second turn loss')
+    axis[1].legend()
+    axis[1].set_title("Loss per epochs")
+
+    plt.show()

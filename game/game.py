@@ -1,5 +1,7 @@
 import random
 import numpy as np
+import torch.nn.functional as F
+import torch
 from game.board import Board
 from game.player import Player
 from utils.consts import BOARD_PAWN_DIM, BOARD_WALL_DIM, DOWN, DOWN_DOWN, DOWN_LEFT, DOWN_RIGHT, HORIZONTAL, LEFT, LEFT_LEFT, NO_WALLS, NONE_WALL, RIGHT, RIGHT_RIGHT, UP, UP_LEFT, UP_RIGHT, UP_UP, VERTICAL
@@ -172,11 +174,39 @@ class Game:
         walls[walls == HORIZONTAL] = 1
         walls[walls == VERTICAL] = 2
         
-        pawns = np.zeros((BOARD_PAWN_DIM * BOARD_PAWN_DIM))
-        pawns[self.human_player.x * BOARD_PAWN_DIM + self.human_player.y] = 1
-        pawns[self.AI_player.x * BOARD_PAWN_DIM + self.AI_player.y] = 2
+        pawn_1 = np.zeros((BOARD_PAWN_DIM * BOARD_PAWN_DIM))
+        pawn_1[self.human_player.x * BOARD_PAWN_DIM + self.human_player.y] = 1
+        pawn_2 = np.zeros((BOARD_PAWN_DIM * BOARD_PAWN_DIM))
+        pawn_2[self.AI_player.x * BOARD_PAWN_DIM + self.AI_player.y] = 1
 
-        return np.concatenate((walls, pawns)).astype(float)
+        return np.concatenate((pawn_1, pawn_2, walls)).astype(float)
+    
+    def get_convolutional_layer(self) -> torch.Tensor:
+        walls = np.array(self.board.walls_used).reshape((1, 1, BOARD_WALL_DIM, BOARD_WALL_DIM))
+        
+        walls[walls == NONE_WALL] = 0
+        walls[walls == HORIZONTAL] = 1
+        walls[walls == VERTICAL] = 2
+
+        walls = torch.Tensor(walls.astype(float))
+        noise = torch.rand(walls.shape) * 1e-2
+        walls = walls + noise
+        upsampled_layer = F.pad(walls, (0, 1, 0, 1), "constant", 0)
+        upsampled_layer = upsampled_layer.view((BOARD_PAWN_DIM, BOARD_PAWN_DIM))
+        
+        first_pawn_layer = torch.Tensor(np.zeros((BOARD_PAWN_DIM, BOARD_PAWN_DIM)))
+        
+        first_pawn_layer[self.human_player.x][self.human_player.y] = 1
+        
+        second_pawn_layer = torch.Tensor(np.zeros((BOARD_PAWN_DIM, BOARD_PAWN_DIM)))
+        second_pawn_layer[self.AI_player.x][self.AI_player.y] = 1
+        
+        noise = torch.rand(first_pawn_layer.shape) * 1e-2
+        first_pawn_layer = first_pawn_layer + noise
+        second_pawn_layer = second_pawn_layer + noise
+
+        final_layer = torch.stack([upsampled_layer, first_pawn_layer, second_pawn_layer])
+        return final_layer
     
     def step(self, action: int) -> tuple[int, bool]:
         reward = 0
@@ -242,27 +272,34 @@ class Game:
             if game.human_won():
                 reward -= game.board.shortest_path_score(game.AI_player, game.human_player, game.AI_player.end_line)
             else:
-                reward += 3 + game.board.shortest_path_score(game.human_player, game.AI_player, game.human_player.end_line)
+                reward += game.board.shortest_path_score(game.human_player, game.AI_player, game.human_player.end_line)
         
         # print(move)
         # self.print_game()
         # print(done)
         return reward, done
     
-    def make_random_move(self) -> tuple[int, bool]:
+    def make_random_move(self, eps=0.8) -> tuple[int, bool]:
 
         player1 = self.human_player
         player2 = self.AI_player
         if not self.human_turn:
             raise Exception("It should not happen!!!\n")
-        move = self.board.shortest_path_move(player1, player2, player1.end_line)
+        move = ""
+
+        # epsilon greedy for moves
+        if random.random() <= eps:
+            move = self.board.shortest_path_move(player1, player2, player1.end_line)
+
         if move == "":
             moves = self.board.get_all_actions_for_a_player(player1, player2)
             move = random.choice(moves)
         self.make_move(move)
 
         done = self.game_finished()
-
+        
+        reward = 0
+        '''
         game = self.deepcopy()
         
         while not game.game_finished():
@@ -282,7 +319,7 @@ class Game:
             reward = -5
         else:
             reward = +5
-
+        '''
         return reward, done
     
     def reset(self, human_turn=False):
@@ -294,7 +331,7 @@ class Game:
         self.game_end = False
         self.human_player_won = None
 
-    def reset_custom(self, human_turn=False, random_position=False, custom_walls=NO_WALLS):
+    def custom_reset(self, human_turn=False, random_position=False, custom_walls=NO_WALLS):
         self.human_player.reset()
         self.AI_player.reset()
         self.board.reset()
@@ -305,22 +342,22 @@ class Game:
 
         if random_position:
             self.human_player.x = random.randint(0, BOARD_PAWN_DIM // 2 - 1)
-            self.human_player.y = random.randint(0, BOARD_PAWN_DIM)
+            self.human_player.y = random.randint(0, BOARD_PAWN_DIM - 1)
 
             self.AI_player.x = random.randint(BOARD_PAWN_DIM // 2 + 1, BOARD_PAWN_DIM - 1)
-            self.AI_player.y = random.randint(0, BOARD_PAWN_DIM)
+            self.AI_player.y = random.randint(0, BOARD_PAWN_DIM - 1)
 
         self.human_player.no_walls = custom_walls
         self.AI_player.no_walls = custom_walls
 
         for _ in range((NO_WALLS - custom_walls) * 2):
-            x = random.randint(0, BOARD_WALL_DIM)
-            y = random.randint(0, BOARD_WALL_DIM)
+            x = random.randint(0, BOARD_WALL_DIM - 1)
+            y = random.randint(0, BOARD_WALL_DIM - 1)
 
             position = VERTICAL if random.randint(0, 1) else HORIZONTAL
 
-            while self.board.use_wall_restrictive(x, y, position):
-                x = random.randint(0, BOARD_WALL_DIM)
-                y = random.randint(0, BOARD_WALL_DIM)
+            while self.board.use_wall_restrictive(x, y, position, self.human_player, self.AI_player):
+                x = random.randint(0, BOARD_WALL_DIM - 1)
+                y = random.randint(0, BOARD_WALL_DIM - 1)
 
                 position = VERTICAL if random.randint(0, 1) != 0 else HORIZONTAL

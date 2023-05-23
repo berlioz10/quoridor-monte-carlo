@@ -99,7 +99,7 @@ class Board:
             if x < BOARD_WALL_DIM - 1:
                 self.walls_allowed[x + 1][VERTICAL][y] = False
 
-    def use_wall_restrictive(self, x: int, y: int, position: str) -> bool:
+    def use_wall_restrictive(self, x: int, y: int, position: str, player1: Player, player2: Player) -> bool:
         if x < 0 or x > BOARD_WALL_DIM - 1 or y < 0 or y > BOARD_WALL_DIM - 1:
             return False 
         if position != HORIZONTAL and position != VERTICAL:
@@ -108,13 +108,15 @@ class Board:
         if self.walls_allowed[x][position][y] == False:
             return False
 
-        if self.shortest_path_score(self.player1, self.player2, self.player1.end_line) == -1 or \
-            self.shortest_path_score(self.player2, self.player1, self.player2.end_line) == -1:
+        self.walls_used[x][y] = position
+        
+        if self.shortest_path_score(player1, player2, player1.end_line) == -1 or \
+            self.shortest_path_score(player2, player1, player2.end_line) == -1:
+            self.walls_used[x][y] = NONE_WALL
             return False
 
         self.walls_allowed[x][HORIZONTAL][y] = False
         self.walls_allowed[x][VERTICAL][y] = False
-        self.walls_used[x][y] = position
 
         if position == HORIZONTAL:
             if y > 0:

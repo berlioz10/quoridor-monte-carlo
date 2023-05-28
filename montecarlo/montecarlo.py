@@ -3,8 +3,8 @@ from game.game import Game
 from montecarlo.node import Node
 
 class MonteCarlo:
-    def __init__(self, humanFirstTurn : bool = True):
-        game = Game(humanFirstTurn)
+    def __init__(self, human_turn : bool = True):
+        game = Game(human_turn)
 
         self.root : Node = Node(None, game, None)
 
@@ -65,22 +65,25 @@ class MonteCarlo:
             #print(i)
             node : Node = self.selection()
             node, _ = self.expansion(node)
-            AIWon : bool = self.simulation(node)
-            self.backpropagation(node, AIWon)
+            AI_won : bool = self.simulation(node)
+            self.backpropagation(node, AI_won)
 
-    def let_AI_make_next_move(self):
+    def make_next_move(self):
         if self.root.game.human_turn == True:
             raise Exception("It is not AI's turn!")
         best_child_winrate = max(self.root.children, key=lambda x : x.win_games / x.total_games)
         winrate = best_child_winrate.win_games / best_child_winrate.total_games
-        print("Winrate: " + str(winrate))
-        print("No. old root children: " + str(len(self.root.children)))
+        # print("Winrate: " + str(winrate))
+        # print("No. old root children: " + str(len(self.root.children)))
         
         ucb_max_children = list(filter(lambda x: x.win_games / x.total_games == winrate, self.root.children))
 
         self.root = random.choice(ucb_max_children)
-        print("Move applied: " + str(self.root.move))
+        # print("Move applied: " + str(self.root.move))
         self.root.parent = None
+        
+        print("Monte Carlo's move: " + str(self.root.move))
+        return self.root.game.game_end
 
     def let_player_make_next_move(self, move: tuple | str):
         if self.root.game.human_turn == False:
@@ -98,4 +101,27 @@ class MonteCarlo:
         
         
         raise Exception("Impossible move!")
+    
+    
+    def let_player_make_next_action(self, action: int) -> tuple[int, bool]:
+        if self.root.game.human_turn == False:
+            raise Exception("It is not human's turn!")
+        
 
+        reward, done = self.root.game.step(action)
+
+        if reward != -30:
+            reward = reward * -1 + 10
+            move = Game.convert_action_into_move(action)
+            for child in self.root.children:
+                if child.move == move:
+                    # print("Old winrate: " + str(self.root.win_games / self.root.total_games))
+                    self.root = child
+                    self.root.parent = None
+                    
+                    # print("New winrate: " + str(self.root.win_games / self.root.total_games))
+                    # print("No. new root children: " + str(len(self.root.children)))
+                    break
+        
+
+        return reward, done

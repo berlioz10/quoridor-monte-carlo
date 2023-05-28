@@ -1,18 +1,21 @@
+import torch
 from game.game import Game
 from montecarlo.montecarlo import MonteCarlo
 from network.actor_critic_conv import ActorCriticConv
-from utils.consts import BOARD_PAWN_DIM, DOWN, HORIZONTAL, LEFT, RIGHT, UP, VERTICAL
+from utils.consts import BOARD_PAWN_DIM, DOWN, HORIZONTAL, INFINITE, LEFT, RIGHT, SAVED_NETWORKS_DIR, UP, VERTICAL
 
 # test cases for: 
 # board (simulatePlayer, walls allowed, player position)
 # 
 # TODO
 if __name__ == '__main__':
-    okHumanTurn = False
-    monteCarlo = MonteCarlo(humanFirstTurn=okHumanTurn)
+    ok_human_turn = True
+
+    model = ActorCriticConv()
+
+    model.load_state_dict(torch.load(SAVED_NETWORKS_DIR + "test.pt"))
     
-    game = Game(human_turn=True)
-    print(game.get_convolutional_layer())
+    game = Game(human_turn=ok_human_turn)
     '''
     game.makeMove((1, 0, VERTICAL))
     game.makeMove((2, 1, HORIZONTAL))
@@ -25,37 +28,43 @@ if __name__ == '__main__':
     game.humanPlayer.y = 2
     game.AIPlayer.x = 2
     game.AIPlayer.y = 2
-    
+    '''
     while True:
-        if monteCarlo.root.game_finished():
+        if game.game_finished():
             print("The winner is ", end="")
-            if monteCarlo.root.human_won():
+            if game.human_won():
                 print("the person!")
             else:
-                print("the AI!")
+                print("the A2C!")
         
             break
         
-        if okHumanTurn:
-            monteCarlo.run(no=130)
-            ok = True
-            
+        if ok_human_turn:
             x = input("Write your move: ")
+            ok = True
             while ok:
                 possible_tuple = x.split() 
                 if len(possible_tuple) > 1:
                     x = (int(possible_tuple[0]), int(possible_tuple[1]), possible_tuple[2])
                 
                 try: 
-                    monteCarlo.let_player_make_next_move(x)
+                    game.make_move(x)
                     ok = False
                 except Exception:
                     x = input("Move doesn't exist or it is impossible, try again: ")
         else:
-            monteCarlo.run(no=2000)
-            monteCarlo.let_AI_make_next_move()
+            policy, value = model(game.get_convolutional_layer())    
+            ok = True
+            while ok:
+                action = torch.argmax(policy)
+                move = Game.convert_action_into_move(action)
+                print(move)
+                reward, done = game.step(action)
+                if reward == -30:
+                    policy[action] = -1.0 * INFINITE
+                else:
+                    ok = False
 
-        monteCarlo.root.game.print_game()
+        game.print_game()
 
-        okHumanTurn = not okHumanTurn
-    '''
+        ok_human_turn = not ok_human_turn

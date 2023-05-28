@@ -182,7 +182,7 @@ class Game:
         return np.concatenate((pawn_1, pawn_2, walls)).astype(float)
     
     def get_convolutional_layer(self) -> torch.Tensor:
-        walls = np.array(self.board.walls_used).reshape((1, 1, BOARD_WALL_DIM, BOARD_WALL_DIM))
+        walls = np.array(self.board.walls_used).reshape((BOARD_WALL_DIM, BOARD_WALL_DIM))
         
         walls[walls == NONE_WALL] = 0
         walls[walls == HORIZONTAL] = 1
@@ -192,7 +192,6 @@ class Game:
         noise = torch.rand(walls.shape) * 1e-2
         walls = walls + noise
         upsampled_layer = F.pad(walls, (0, 1, 0, 1), "constant", 0)
-        upsampled_layer = upsampled_layer.view((BOARD_PAWN_DIM, BOARD_PAWN_DIM))
         
         first_pawn_layer = torch.Tensor(np.zeros((BOARD_PAWN_DIM, BOARD_PAWN_DIM)))
         
@@ -208,10 +207,72 @@ class Game:
         final_layer = torch.stack([upsampled_layer, first_pawn_layer, second_pawn_layer])
         return final_layer
     
-    def step(self, action: int) -> tuple[int, bool]:
-        reward = 0
-        done = False
+    
+    def get_convolutional_layer_reversed(self) -> torch.Tensor:
+        walls = np.flip(self.board.walls_used).reshape((BOARD_WALL_DIM, BOARD_WALL_DIM))
+        
+        walls[walls == NONE_WALL] = 0
+        walls[walls == HORIZONTAL] = 1
+        walls[walls == VERTICAL] = 2
 
+        walls = torch.Tensor(walls.astype(float))
+        noise = torch.rand(walls.shape) * 1e-2
+        walls = walls + noise
+        upsampled_layer = F.pad(walls, (0, 1, 0, 1), "constant", 0)
+        
+        first_pawn_layer = torch.Tensor(np.zeros((BOARD_PAWN_DIM, BOARD_PAWN_DIM)))
+        first_pawn_layer[BOARD_PAWN_DIM - self.human_player.x - 1][BOARD_PAWN_DIM - self.human_player.y - 1] = 1
+        
+        second_pawn_layer = torch.Tensor(np.zeros((BOARD_PAWN_DIM, BOARD_PAWN_DIM)))
+        second_pawn_layer[BOARD_PAWN_DIM - self.AI_player.x - 1][BOARD_PAWN_DIM - self.AI_player.y - 1] = 1
+        
+        noise = torch.rand(first_pawn_layer.shape) * 1e-2
+        first_pawn_layer = first_pawn_layer + noise
+        second_pawn_layer = second_pawn_layer + noise
+
+        final_layer = torch.stack([upsampled_layer, second_pawn_layer, first_pawn_layer])
+        print(final_layer)
+        return final_layer
+    
+    def reverse_action(action: int):
+        if action >= 0  and action <= 11:
+            if action == 0:
+                reversed_action = 1
+            if action == 1:
+                reversed_action = 0
+            if action == 2:
+                reversed_action = 3
+            if action == 3:
+                reversed_action = 2
+            if action == 4:
+                reversed_action = 5
+            if action == 5:
+                reversed_action = 4
+            if action == 6:
+                reversed_action = 7
+            if action == 7:
+                reversed_action = 6
+            if action == 8:
+                reversed_action = 11
+            if action == 9:
+                reversed_action = 10
+            if action == 10:
+                reversed_action = 9
+            if action == 11:
+                reversed_action = 8
+        else:
+            wall_action = action - 12
+            x = BOARD_WALL_DIM - wall_action  // 2 // BOARD_WALL_DIM - 1
+            y = BOARD_WALL_DIM - wall_action // 2   % BOARD_WALL_DIM - 1
+            position = HORIZONTAL if wall_action % 2 == 0 else VERTICAL
+            reversed_action = 12 + (x * BOARD_WALL_DIM + y) * 2
+            if position == VERTICAL:
+                reversed_action += 1
+        print(str(action) + " " + str(reversed_action))
+        return reversed_action
+
+    
+    def convert_action_into_move(action: int):
         if action >= 0  and action <= 11:
             if action == 0:
                 move = UP
@@ -244,8 +305,15 @@ class Game:
             position = HORIZONTAL if action % 2 == 0 else VERTICAL
             move = (x, y, position)
 
+        return move
+
+    def step(self, action: int) -> tuple[int, bool]:
+        reward = 0
+        done = False
+
+        move = Game.convert_action_into_move(action)
+
         actions = self.get_all_actions()
-    
         if move not in actions:
             reward = -30
             done = True

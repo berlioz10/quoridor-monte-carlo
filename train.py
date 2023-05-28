@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from network.actor_critic_conv import ActorCriticConv
 
 from network.workers import custom_worker, custom_worker_conv
-from utils.consts import NO_WALLS
+from utils.consts import NO_WALLS, SAVED_NETWORKS_DIR
 from utils.functions import Functions
 
 if __name__ == '__main__':
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     processes : list[mp.Process] = []
     # it would be prefered that you use a number of threads divizible by 4
     params = {
-    'epochs': 1000,
+    'epochs': 10000,
     'n_workers': 8,
     'lr': 1e-4,
     'gamma': 0.95,
@@ -51,6 +51,7 @@ if __name__ == '__main__':
     for p in processes:
         p.terminate()
 
+    torch.save(MasterNode.state_dict(), SAVED_NETWORKS_DIR + "test.pt")
 
     figure, axis = plt.subplots(2, 1)
     

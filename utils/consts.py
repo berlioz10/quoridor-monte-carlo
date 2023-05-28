@@ -19,3 +19,5 @@ UP_UP = "upup"
 DOWN_DOWN = "downdown"
 LEFT_LEFT = "leftleft"
 RIGHT_RIGHT = "rightright"
+
+SAVED_NETWORKS_DIR = "network/saved_networks/"

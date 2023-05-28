@@ -272,7 +272,7 @@ class Game:
             if game.human_won():
                 reward -= game.board.shortest_path_score(game.AI_player, game.human_player, game.AI_player.end_line)
             else:
-                reward += game.board.shortest_path_score(game.human_player, game.AI_player, game.human_player.end_line)
+                reward += 10 + game.board.shortest_path_score(game.human_player, game.AI_player, game.human_player.end_line)
         
         # print(move)
         # self.print_game()

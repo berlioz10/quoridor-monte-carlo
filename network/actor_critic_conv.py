@@ -38,10 +38,10 @@ class ActorCriticConv(nn.Module):
         # x = F.normalize(x, dim=0)
 
         x = self.conv1(x)
-        x = F.relu(x)
+        x = F.leaky_relu(x, negative_slope=0.01)
         # x = self.maxpool1(x)
         x = self.conv2(x)
-        x = F.relu(x)
+        x = F.leaky_relu(x, negative_slope=0.01)
         # x = self.maxpool2(x)
         
         x = torch.flatten(x)

@@ -50,6 +50,7 @@ def update_params(worker_opt: torch.optim.Adam, values, logprobs, rewards, clc=0
     critic_loss = torch.pow(values - Returns, 2)
     
     loss = actor_loss.sum() + clc * critic_loss.sum()
+    
     loss.backward()
     worker_opt.step()
 

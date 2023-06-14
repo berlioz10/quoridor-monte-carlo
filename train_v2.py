@@ -1,25 +1,23 @@
 import torch
 from game.game import Game
-from network.actor_critic import ActorCritic
-from network.actor_critic_conv import ActorCriticConv
 import multiprocessing as mp
-from collections import Counter
 import numpy as np
 import random
 
 from matplotlib import pyplot as plt
+from network.actor_critic_conv_v2 import ActorCriticConvV2
 
-from network.workers import custom_worker, custom_worker_conv
+from network.workers_v2 import custom_worker_conv
 from utils.consts import NO_WALLS, SAVED_NETWORKS_DIR
 from utils.functions import Functions
 
 if __name__ == '__main__':
-    MasterNode = ActorCritic()
+    MasterNode = ActorCriticConvV2()
     MasterNode.share_memory()
     processes : list[mp.Process] = []
     # it would be prefered that you use a number of threads divizible by 4
     params = {
-    'epochs': 10000,
+    'epochs': 50000,
     'n_workers': 8,
     'lr': 1e-4,
     'gamma': 0.90,
@@ -40,7 +38,7 @@ if __name__ == '__main__':
     # list4 = mp.Array('d', range(params['epochs'] * it))
 
     for i in range(it):
-        p = mp.Process(target=custom_worker, args=(i, MasterNode, ep_list, loss_list, params))
+        p = mp.Process(target=custom_worker_conv, args=(i, MasterNode, ep_list, loss_list, params))
         p.start()
         processes.append(p)
 
@@ -52,26 +50,18 @@ if __name__ == '__main__':
     for p in processes:
         p.terminate()
 
-    torch.save(MasterNode.state_dict(), SAVED_NETWORKS_DIR + "test2.pt")
+    torch.save(MasterNode.state_dict(), SAVED_NETWORKS_DIR + "test_v2.pt")
 
-    first_graph_dict = Counter(ep_list[0:params['epochs']])
+    figure, axis = plt.subplots(2, 1)
+    
+    axis[0].plot(ep_list[0:params['epochs']], label='AI first turn episode length')
+    axis[0].plot(ep_list[params['epochs']:], label='AI second turn episode length')
+    axis[0].legend()
+    axis[0].set_title("Episode length per epochs")
 
-    plt.subplot(2, 2, 1)
-    plt.bar(first_graph_dict.keys(), first_graph_dict.values(), label='AI first turn episode length')
-    plt.legend()
-    plt.title("Episode length per epochs A2C first")
-
-    second_graph_dict = Counter(ep_list[params['epochs']:])
-
-    plt.subplot(2, 2, 2)
-    plt.bar(second_graph_dict.keys(), second_graph_dict.values(), label='AI second turn episode length')
-    plt.legend()
-    plt.title("Episode length per epochs A2C second")
-
-    plt.subplot(2, 1, 2)
-    plt.plot(loss_list[0:params['epochs']], label='AI first turn loss')
-    plt.plot(loss_list[params['epochs']:], label='AI second turn loss')
-    plt.legend()
-    plt.title("Loss per epochs")
+    axis[1].plot(loss_list[0:params['epochs']], label='AI first turn loss')
+    axis[1].plot(loss_list[params['epochs']:], label='AI second turn loss')
+    axis[1].legend()
+    axis[1].set_title("Loss per epochs")
 
     plt.show()

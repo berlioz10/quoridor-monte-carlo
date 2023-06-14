@@ -10,10 +10,10 @@ from utils.consts import BOARD_PAWN_DIM, BOARD_WALL_DIM
 class ActorCritic(nn.Module):
     def __init__(self):
         
-        l1_dim = 750
-        l2_dim = 750
-        l3_actor_dim = 600
-        l4_critic_dim = 500
+        l1_dim = 500
+        l2_dim = 500
+        l3_actor_dim = 400
+        l4_critic_dim = 300
 
         super(ActorCritic, self).__init__()
         self.l1 = nn.Linear(BOARD_PAWN_DIM * BOARD_PAWN_DIM * 2 + BOARD_WALL_DIM * BOARD_WALL_DIM, l1_dim)

@@ -31,7 +31,7 @@ if __name__ == '__main__':
             if monteCarlo.root.human_won():
                 print("the person!")
             else:
-                print("the MOnte Carlo!")
+                print("the Monte Carlo!")
         
             break
         
@@ -51,7 +51,7 @@ if __name__ == '__main__':
                 except Exception:
                     x = input("Move doesn't exist or it is impossible, try again: ")
         else:
-            monteCarlo.run(no=2000)
+            monteCarlo.run(no=10000)
             monteCarlo.make_next_move()
 
         monteCarlo.root.game.print_game()

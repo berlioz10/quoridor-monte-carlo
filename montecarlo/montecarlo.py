@@ -62,7 +62,7 @@ class MonteCarlo:
     # running all the monte carlo tree search steps
     def run(self, no: int = 2000):
         for i in range(no):
-            #print(i)
+            print(i)
             node : Node = self.selection()
             node, _ = self.expansion(node)
             AI_won : bool = self.simulation(node)
@@ -71,9 +71,13 @@ class MonteCarlo:
     def make_next_move(self):
         if self.root.game.human_turn == True:
             raise Exception("It is not AI's turn!")
+        
+        old_winrate = self.root.win_games / self.root.total_games
+        print("Old winrate: " + str(old_winrate))
+        
         best_child_winrate = max(self.root.children, key=lambda x : x.win_games / x.total_games)
         winrate = best_child_winrate.win_games / best_child_winrate.total_games
-        # print("Winrate: " + str(winrate))
+        print("New winrate: " + str(winrate))
         # print("No. old root children: " + str(len(self.root.children)))
         
         ucb_max_children = list(filter(lambda x: x.win_games / x.total_games == winrate, self.root.children))

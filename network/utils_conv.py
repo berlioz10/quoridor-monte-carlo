@@ -6,7 +6,7 @@ from montecarlo.montecarlo import MonteCarlo
 from network.actor_critic_conv import ActorCriticConv
 
 
-def run_episode(worker_env: Game, worker_model: ActorCriticConv):
+def run_episode_conv(worker_env: Game, worker_model: ActorCriticConv):
     values, logprobs, rewards = [],[],[]
     done = False
 
@@ -32,7 +32,7 @@ def run_episode(worker_env: Game, worker_model: ActorCriticConv):
 
     return values, logprobs, rewards
 
-def run_episode_monte_carlo(worker_env: MonteCarlo, worker_model: ActorCriticConv):
+def run_episode_monte_carlo_conv(worker_env: MonteCarlo, worker_model: ActorCriticConv):
     values, logprobs, rewards = [],[],[]
     done = False
 
